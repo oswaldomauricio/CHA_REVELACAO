@@ -32,6 +32,7 @@
       overflow: hidden;
       -webkit-tap-highlight-color: transparent;
       padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      transition: background .45s ease;
     }
 
     .wrap {
@@ -288,7 +289,7 @@
       place-items: center;
       padding: 24px;
       text-align: center;
-      background: radial-gradient(800px 600px at 50% 50%, rgba(255, 255, 255, .75), rgba(255, 255, 255, .95) 70%);
+      background: var(--accent);
       opacity: 0;
       visibility: hidden;
       transition: opacity .45s ease, visibility .45s ease;
@@ -498,9 +499,13 @@
       const CONFIG = {
         BALLOON_COUNT: 10,
         REVEAL_MESSAGE: 'É MENINA! 🎀',
+        // REVEAL_MESSAGE: 'É MENINO! 💙',
         REVEAL_SUB: `A família aumentou e um novo amor surgiu, o primeiro olhar, a primeira palavra, os primeiros passos estão prestes a acontecer e muitas coisas novas ainda virão nessa longa caminhada... Deus vai guiar cada passo e vai abençoar cada nova descoberta! A Mamãe e o Papai, felizes, anunciam para toda a família, a sua chegada!`,
-        BABY_NAME: 'Tália',
-        THEME_COLOR: '#ff78b2',
+        BABY_NAME: 'Seja bem vinda, Tália',
+        // BABY_NAME: 'Seja bem vindo, Romeu',
+        THEME_COLOR: '#ff78b2', // se for menina
+        // THEME_COLOR: '#1e90ff', // azul se for menino
+
         SECONDARY_COLOR: '#7cc8ff',
         RANDOMIZE_COLORS: true, // usar paleta abaixo nas cores dos balões
         USE_URL_PARAMS: true,
@@ -709,12 +714,18 @@
           msgEl.textContent = CONFIG.REVEAL_MESSAGE;
           subEl.textContent = CONFIG.REVEAL_SUB;
           setThemeColor(CONFIG.THEME_COLOR);
+          // muda o fundo para a cor do resultado (rosa/azul)
+          document.documentElement.style.setProperty('--bg', CONFIG.THEME_COLOR);
+          document.body.style.background = CONFIG.THEME_COLOR;
+
           reveal.classList.add('show');
           finaleShow();
         }
 
 
         function resetGame() {
+          document.documentElement.style.setProperty('--bg', '#f3f4f6');
+          document.body.style.background = 'var(--bg)';
           cluster.innerHTML = '';
           const svg = ensureStringsSvg();
           const anchor = ensureAnchor();
