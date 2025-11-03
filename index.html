@@ -1,25 +1,31 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Chá de Revelação — Estoure os Balões!</title>
+  <title>Estoure os Balões!</title>
   <meta name="description" content="Jogo de estourar balões: ao estourar todos, o sexo do bebê é revelado." />
   <style>
     :root {
-      --bg: #f3f4f6; /* fundo cinza claro */
-      --ink: #111827; /* texto escuro */
+      --bg: #f3f4f6;
+      /* fundo cinza claro */
+      --ink: #111827;
+      /* texto escuro */
       --muted: #6b7280;
       --border: #e5e7eb;
       --card: #ffffffee;
-      --accent: #ff78b2; /* cor do destaque (pode mudar via URL/CONFIG) */
+      --accent: #ff78b2;
+      /* cor do destaque (pode mudar via URL/CONFIG) */
       --accent2: #7cc8ff;
-      --balloon-gray-h: 220; /* tom neutro azul-cinza (não muito frio) */
+      --balloon-gray-h: 220;
+      /* tom neutro azul-cinza (não muito frio) */
       --balloon-gray-s: 8%;
       --balloon-gray-l: 90%;
     }
 
-    html, body {
+    html,
+    body {
       background: var(--bg);
       color: var(--ink);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', emoji, sans-serif;
@@ -28,62 +34,171 @@
       padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
 
-    .wrap { display: grid; grid-template-rows: auto auto 1fr auto; min-height: 100dvh; }
+    .wrap {
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      min-height: 100dvh;
+    }
 
     header {
-      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
       padding: 14px clamp(14px, 4vw, 28px);
-      position: relative; z-index: 3;
+      position: relative;
+      z-index: 3;
       border-bottom: 1px solid var(--border);
       background: #fff;
     }
-    header .title { display: flex; flex-direction: column; gap: 6px; }
-    h1 { font-size: clamp(20px, 3.2vw, 32px); margin: 0; letter-spacing: .2px; color: var(--ink); }
-    .subtitle { font-size: clamp(12px, 1.8vw, 14px); color: var(--muted); }
 
-    .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .btn, .chip {
-      border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px;
-      background: #fff; color: var(--ink); font-weight: 600; cursor: pointer;
-      transition: transform .15s ease, background .2s ease, box-shadow .2s ease;
-      box-shadow: 0 1px 0 #00000006; user-select: none;
-      min-height: 44px; min-width: 44px; touch-action: manipulation;
+    header .title {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
-    
-    .btn:hover { transform: translateY(-1px); background: #f9fafb; }
-    .btn:active { transform: translateY(0); }
-    .chip { font-size: 13px; background: #f3f4f6; color: #111827; }
-    .counter { opacity: .9; }
+
+    h1 {
+      font-size: clamp(20px, 3.2vw, 32px);
+      margin: 0;
+      letter-spacing: .2px;
+      color: var(--ink);
+    }
+
+    .subtitle {
+      font-size: clamp(12px, 1.8vw, 14px);
+      color: var(--muted);
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn,
+    .chip {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      background: #fff;
+      color: var(--ink);
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .15s ease, background .2s ease, box-shadow .2s ease;
+      box-shadow: 0 1px 0 #00000006;
+      user-select: none;
+      min-height: 44px;
+      min-width: 44px;
+      touch-action: manipulation;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      background: #f9fafb;
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .chip {
+      font-size: 13px;
+      background: #f3f4f6;
+      color: #111827;
+    }
+
+    .counter {
+      opacity: .9;
+    }
 
     /* Barra de "jogo da forca" */
-    .progress { display: flex; gap: 8px; align-items: center; justify-content: center; padding: 8px 16px; border-bottom: 1px solid var(--border); background: #fff; position: relative; z-index: 2; }
-    .box { width: clamp(28px, 4vw, 40px); height: clamp(36px, 5.2vw, 50px); display: grid; place-items: center; border: 2px solid var(--border); border-radius: 8px; font-weight: 800; font-size: clamp(18px, 3.2vw, 28px); color: var(--ink); }
-    .box.empty { color: #9ca3af; }
+    .progress {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+      position: relative;
+      z-index: 2;
+    }
 
-    main { position: relative; z-index: 1; overflow: hidden; }
+    .box {
+      width: clamp(28px, 4vw, 40px);
+      height: clamp(36px, 5.2vw, 50px);
+      display: grid;
+      place-items: center;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: clamp(18px, 3.2vw, 28px);
+      color: var(--ink);
+    }
+
+    .box.empty {
+      color: #9ca3af;
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      overflow: hidden;
+    }
 
     /* Área de cena */
-    .balloon-stage { position: absolute; inset: 0; padding: clamp(12px, 3vw, 24px); overflow: hidden; }
+    .balloon-stage {
+      position: absolute;
+      inset: 0;
+      padding: clamp(12px, 3vw, 24px);
+      overflow: hidden;
+    }
 
     /* Cluster de balões empilhados */
     .cluster {
-      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-      width: min(560px, 92vw); height: min(560px, 70vh);
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(560px, 92vw);
+      height: min(560px, 70vh);
       pointer-events: auto;
     }
 
     /* Ponto âncora das cordas (fixo, puxando os balões) */
-    .anchor { position: absolute; left: 50%; bottom: -6px; width: 8px; height: 8px; transform: translateX(-50%); border-radius: 50%; background: #9ca3af; box-shadow: 0 0 0 2px #e5e7eb; z-index: 1; pointer-events: none; }
+    .anchor {
+      position: absolute;
+      left: 50%;
+      bottom: -6px;
+      width: 8px;
+      height: 8px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: #9ca3af;
+      box-shadow: 0 0 0 2px #e5e7eb;
+      z-index: 1;
+      pointer-events: none;
+    }
 
     /* SVG das cordinhas onduladas */
-    .strings { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: visible; }
+    .strings {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: visible;
+    }
 
     /* Balão */
     .balloon {
       --hue: var(--balloon-gray-h);
       --sat: var(--balloon-gray-s);
       --lum: var(--balloon-gray-l);
-      --duration: 3.2s; --delay: 0s; --scale: 1;
+      --duration: 3.2s;
+      --delay: 0s;
+      --scale: 1;
       aspect-ratio: 3/4;
       border-radius: 50% 50% 45% 45% / 58% 58% 42% 42%;
       background:
@@ -94,67 +209,246 @@
           hsl(var(--hue) var(--sat) var(--lum)) 40%,
           hsl(var(--hue) var(--sat) calc(var(--lum) - 6%)) 100%);
       box-shadow: 0 10px 18px #00000010, inset 0 4px 10px #ffffffdd;
-      position: absolute; transform: scale(var(--scale));
-      transition: filter .25s ease, transform .25s ease; cursor: pointer; outline: none;
+      position: absolute;
+      transform: scale(var(--scale));
+      transition: filter .25s ease, transform .25s ease;
+      cursor: pointer;
+      outline: none;
       /* desativado: vamos animar via JS (drift) */
       animation: none;
       pointer-events: auto;
     }
-    .cluster .balloon { will-change: transform; }
-    .balloon::after { content: ""; position: absolute; bottom: -8px; left: 50%; width: 14px; height: 10px; background: var(--neckColor, hsl(var(--hue) var(--sat) calc(var(--lum) - 8%))); transform: translateX(-50%) rotate(45deg); border-radius: 2px; box-shadow: 0 1px 0 #00000015; }
+
+    .cluster .balloon {
+      will-change: transform;
+    }
+
+    .balloon::after {
+      content: "";
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      width: 14px;
+      height: 10px;
+      background: var(--neckColor, hsl(var(--hue) var(--sat) calc(var(--lum) - 8%)));
+      transform: translateX(-50%) rotate(45deg);
+      border-radius: 2px;
+      box-shadow: 0 1px 0 #00000015;
+    }
 
     /* escondemos a pseudo-corda (usamos SVG) */
-    .balloon[data-string="1"]::before { display: none; }
+    .balloon[data-string="1"]::before {
+      display: none;
+    }
 
-    .balloon:focus-visible { box-shadow: 0 0 0 3px #00000010, 0 10px 18px #00000010; }
-    .balloon:hover { filter: brightness(1.03) saturate(1.02); }
+    .balloon:focus-visible {
+      box-shadow: 0 0 0 3px #00000010, 0 10px 18px #00000010;
+    }
+
+    .balloon:hover {
+      filter: brightness(1.03) saturate(1.02);
+    }
 
     /* Efeito ao estourar */
-    .balloon.popped { animation: pop .45s ease forwards; pointer-events: none; }
-    @keyframes pop { 0%{transform:translateY(0) scale(var(--scale)); filter:saturate(1); opacity:1;} 40%{transform:translateY(-6px) scale(calc(var(--scale)*1.12)); filter:saturate(1.1);} 100%{transform:translateY(0) scale(0); opacity:0;} }
+    .balloon.popped {
+      animation: pop .45s ease forwards;
+      pointer-events: none;
+    }
+
+    @keyframes pop {
+      0% {
+        transform: translateY(0) scale(var(--scale));
+        filter: saturate(1);
+        opacity: 1;
+      }
+
+      40% {
+        transform: translateY(-6px) scale(calc(var(--scale)*1.12));
+        filter: saturate(1.1);
+      }
+
+      100% {
+        transform: translateY(0) scale(0);
+        opacity: 0;
+      }
+    }
 
     /* Overlay de revelação (leve no branco) */
-    .reveal { position:absolute; inset:0; display:grid; place-items:center; padding:24px; text-align:center; background: radial-gradient(800px 600px at 50% 50%, rgba(255,255,255,.75), rgba(255,255,255,.95) 70%); opacity:0; visibility:hidden; transition:opacity .45s ease, visibility .45s ease; z-index: 4; }
-    .reveal.show { opacity:1; visibility:visible; }
-    .card{ max-width:900px; background:var(--card); border:1px solid var(--border); border-radius:24px; padding:clamp(20px,4vw,42px); box-shadow:0 20px 50px #00000010, inset 0 1px 0 #ffffff; }
-    .msg{ font-size:clamp(28px,6vw,86px); font-weight:900; margin:0 0 10px; line-height:1.02; letter-spacing:.8px; color:var(--accent); }
-    .submsg{ font-size:clamp(14px,2.2vw,20px); color:#374151; margin-bottom:22px; }
-    .actions{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+    .reveal {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      text-align: center;
+      background: radial-gradient(800px 600px at 50% 50%, rgba(255, 255, 255, .75), rgba(255, 255, 255, .95) 70%);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .45s ease, visibility .45s ease;
+      z-index: 4;
+    }
+
+    .reveal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .card {
+      max-width: 900px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: clamp(20px, 4vw, 42px);
+      box-shadow: 0 20px 50px #00000010, inset 0 1px 0 #ffffff;
+    }
+
+    .msg {
+      font-size: clamp(28px, 6vw, 86px);
+      font-weight: 900;
+      margin: 0 0 10px;
+      line-height: 1.02;
+      letter-spacing: .8px;
+      color: var(--accent);
+    }
+
+    .submsg {
+      font-size: clamp(14px, 2.2vw, 20px);
+      color: #374151;
+      margin-bottom: 18px;
+    }
+
+    .baby-name {
+      font-size: clamp(22px, 5.8vw, 68px);
+      font-weight: 900;
+      margin: 10px 0 18px;
+      line-height: 1.05;
+      letter-spacing: .6px;
+      color: var(--ink);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
 
     /* Canvas: confete de fundo + confete/fogos do final */
-    canvas#bgConfetti { position:absolute; inset:0; z-index: 0; pointer-events:none; }
-    canvas#confetti { position:absolute; inset:0; z-index: 5; pointer-events:none; }
+    canvas#bgConfetti {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    canvas#confetti {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      pointer-events: none;
+    }
 
     /* Indicador de "Faltam X balões" no canto */
-    .bubble-indicator { position:fixed; bottom:16px; right:16px; background:#ffffff; border:1px solid var(--border); border-radius:999px; padding:10px 14px; box-shadow:0 8px 24px #0000000f, inset 0 1px 0 #ffffff; z-index:2; font-weight:700; color:#111827; }
-  @media (max-width: 768px) {
-    header { padding: 12px 16px; }
-    h1 { font-size: clamp(18px, 4.2vw, 26px); }
-    .subtitle { font-size: clamp(12px, 2.4vw, 13px); }
-    .progress { gap: 6px; padding: 8px 10px; }
-    .box { width: clamp(26px, 5.5vw, 36px); height: clamp(34px, 7vw, 46px); font-size: clamp(16px, 3.6vw, 24px); }
-    .cluster { width: 94vw; height: 62vh; }
-    .bubble-indicator { bottom: calc(14px + env(safe-area-inset-bottom)); right: 14px; }
-  }
+    .bubble-indicator {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 10px 14px;
+      box-shadow: 0 8px 24px #0000000f, inset 0 1px 0 #ffffff;
+      z-index: 2;
+      font-weight: 700;
+      color: #111827;
+    }
 
-  @media (max-width: 480px) {
-    header { padding: 10px 12px; }
-    h1 { font-size: clamp(16px, 5.2vw, 22px); }
-    .controls { gap: 8px; }
-    .btn, .chip { padding: 12px 14px; font-size: 15px; border-radius: 14px; }
-    .progress { gap: 6px; padding: 8px 8px; }
-    .box { width: 30px; height: 40px; font-size: 18px; border-radius: 6px; }
-    .cluster { width: 96vw; height: 58vh; }
-    .bubble-indicator { bottom: calc(12px + env(safe-area-inset-bottom)); right: 12px; }
-  }
+    @media (max-width: 768px) {
+      header {
+        padding: 12px 16px;
+      }
+
+      h1 {
+        font-size: clamp(18px, 4.2vw, 26px);
+      }
+
+      .subtitle {
+        font-size: clamp(12px, 2.4vw, 13px);
+      }
+
+      .progress {
+        gap: 6px;
+        padding: 8px 10px;
+      }
+
+      .box {
+        width: clamp(26px, 5.5vw, 36px);
+        height: clamp(34px, 7vw, 46px);
+        font-size: clamp(16px, 3.6vw, 24px);
+      }
+
+      .cluster {
+        width: 94vw;
+        height: 62vh;
+      }
+
+      .bubble-indicator {
+        bottom: calc(14px + env(safe-area-inset-bottom));
+        right: 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      header {
+        padding: 10px 12px;
+      }
+
+      h1 {
+        font-size: clamp(16px, 5.2vw, 22px);
+      }
+
+      .controls {
+        gap: 8px;
+      }
+
+      .btn,
+      .chip {
+        padding: 12px 14px;
+        font-size: 15px;
+        border-radius: 14px;
+      }
+
+      .progress {
+        gap: 6px;
+        padding: 8px 8px;
+      }
+
+      .box {
+        width: 30px;
+        height: 40px;
+        font-size: 18px;
+        border-radius: 6px;
+      }
+
+      .cluster {
+        width: 96vw;
+        height: 58vh;
+      }
+
+      .bubble-indicator {
+        bottom: calc(12px + env(safe-area-inset-bottom));
+        right: 12px;
+      }
+    }
   </style>
 </head>
+
 <body>
   <div class="wrap">
     <header>
       <div class="title">
         <h1>Estoure todos os balões para descobrir a surpresa! 🎈
-        <!-- <div class="subtitle">Estoure todos os balões para descobrir a surpresa! 🎈</div> -->
+        <div class="subtitle"></div>
       </div>
       <div class="controls">
         <span class="chip counter" id="counter">Faltam —</span>
@@ -179,6 +473,7 @@
         <div class="card">
           <h2 class="msg" id="msg">É MENINO!</h2>
           <p class="submsg" id="submsg">Parabéns, família! Que venha com muita saúde. 💙</p>
+          <div class="baby-name" id="babyNameLine"><span id="babyName">Seja bem vinda, Tália</span>!!!</div>
           <div class="actions">
             <button class="btn" id="againBtn" type="button">Jogar de novo</button>
             <button class="btn" id="shareBtn" type="button">Compartilhar</button>
@@ -191,453 +486,492 @@
   </div>
 
   <script>
-  (function() {
-    /** ======== CONFIG ======== */
-    const CONFIG = {
-      BALLOON_COUNT: 10,
-      REVEAL_MESSAGE: 'É MENINA! 🎀',
-      REVEAL_SUB: `A família aumentou e um novo amor surgiu, o primeiro olhar, a primeira palavra, os primeiros passos estão prestes a acontecer e muitas coisas novas ainda virão nessa longa caminhada... Deus vai guiar cada passo e vai abençoar cada nova descoberta! A Mamãe e o Papai, felizes, anunciam para toda a família, a sua chegada!
-
-Que seja bem vindo Tália!!!🎀❤`,
-      THEME_COLOR: '#ff78b2',
-      SECONDARY_COLOR: '#7cc8ff',
-      RANDOMIZE_COLORS: false, // usar cor única para todos os balões (BASE_COLOR)
-      USE_URL_PARAMS: true,
-      STRING_RATIO: 1,
-      RUN_TESTS: false,
-      // confete de fundo (queda sutil)
-      BG_CONFETTI_OPACITY: 0.5,   // opacidade dos quadradinhos
-      BG_CONFETTI_DENSITY: 10,    // densidade de spawn (cuidado: valores altos pesam)
-      BG_CONFETTI_SIZE: [2, 4],   // faixa de tamanho em px
-      BG_CONFETTI_SPEED: [18, 36], // pixels/segundo
-      BG_CONFETTI_COLORS: ['#ff78b2', '#7cc8ff', '#ffd166', '#7ae582', '#a78bfa', '#f472b6', '#60a5fa'],
-      // paleta solicitada
-      PALETTE: ['#F5F5F5'],
-      BASE_COLOR: '#F5F5F5'
-    };
-
-    // Aguarda DOM pronto
-    window.addEventListener('DOMContentLoaded', boot);
-
-    function boot(){
-      // Refs
-      const stage = document.getElementById('stage');
-      const cluster = document.getElementById('cluster');
-      const stringsSvg = document.getElementById('strings');
-      const counter = document.getElementById('counter');
-      const floatingCounter = document.getElementById('floatingCounter');
-      const reveal = document.getElementById('reveal');
-      const msgEl = document.getElementById('msg');
-      const subEl = document.getElementById('submsg');
-      const againBtn = document.getElementById('againBtn');
-      const resetBtn = document.getElementById('resetBtn');
-      const shareBtn = document.getElementById('shareBtn');
-      const progress = document.getElementById('progress');
-      const bgCanvas = document.getElementById('bgConfetti');
-      const bgCtx = bgCanvas.getContext('2d');
-      const confettiCanvas = document.getElementById('confetti');
-      const ctx = confettiCanvas.getContext('2d');
-
-      if (!stage || !cluster) { console.error('[Erro] Elementos essenciais não encontrados'); return; }
-
-      // Utils
-      const lerp = (a,b,t)=>a+(b-a)*t;
-      const rand=(min,max)=>Math.random()*(max-min)+min;
-      const clamp=(v,lo,hi)=>Math.min(hi,Math.max(lo,v));
-      // util: cor
-      const hexToRgb = (hex)=>{ const m = /^#?([0-9a-f]{6}|[0-9a-f]{3})$/i.exec(hex); if(!m) return {r:240,g:240,b:240}; let h=m[1]; if(h.length===3) h=h.split('').map(x=>x+x).join(''); const num=parseInt(h,16); return {r:(num>>16)&255,g:(num>>8)&255,b:num&255}; };
-      const rgbToHex = (r,g,b)=>'#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
-      const shade = (hex, p)=>{ const {r,g,b}=hexToRgb(hex); const t=p>=0?255:0; const f=Math.abs(p); return rgbToHex(
-        Math.round(r+(t-r)*f), Math.round(g+(t-g)*f), Math.round(b+(t-b)*f)
-      ); };
-      const gradientFor = (base)=>{
-        const light = shade(base, 0.15); // +15%
-        const dark  = shade(base,-0.12); // -12%
-        return `radial-gradient(120% 120% at 30% 30%, #ffffff88 0 30%, transparent 40%),`
-             + `radial-gradient(110% 90% at 60% 20%, #ffffff55 0 15%, transparent 26%),`
-             + `linear-gradient(180deg, ${light} 0%, ${base} 40%, ${dark} 100%)`;
+    (function () {
+      /** ======== CONFIG ======== */
+      const CONFIG = {
+        BALLOON_COUNT: 10,
+        REVEAL_MESSAGE: 'É MENINA! 🎀',
+        REVEAL_SUB: `A família aumentou e um novo amor surgiu, o primeiro olhar, a primeira palavra, os primeiros passos estão prestes a acontecer e muitas coisas novas ainda virão nessa longa caminhada... Deus vai guiar cada passo e vai abençoar cada nova descoberta! A Mamãe e o Papai, felizes, anunciam para toda a família, a sua chegada!`,
+        BABY_NAME: 'Tália',
+        THEME_COLOR: '#ff78b2',
+        SECONDARY_COLOR: '#7cc8ff',
+        RANDOMIZE_COLORS: true, // usar paleta abaixo nas cores dos balões
+        USE_URL_PARAMS: true,
+        STRING_RATIO: 1,
+        RUN_TESTS: false,
+        // confete de fundo (queda sutil)
+        BG_CONFETTI_OPACITY: 0.5,   // opacidade dos quadradinhos
+        BG_CONFETTI_DENSITY: 10,    // densidade de spawn (cuidado: valores altos pesam)
+        BG_CONFETTI_SIZE: [2, 4],   // faixa de tamanho em px
+        BG_CONFETTI_SPEED: [18, 36], // pixels/segundo
+        BG_CONFETTI_COLORS: ['#ff78b2', '#7cc8ff', '#ffd166', '#7ae582', '#a78bfa', '#f472b6', '#60a5fa'],
+        // paleta para os balões (iguais às cores dos confetes)
+        PALETTE: ['#ff78b2', '#7cc8ff', '#ffd166', '#7ae582', '#a78bfa', '#f472b6', '#60a5fa'],
+        BASE_COLOR: '#F5F5F5'
       };
 
-      // Estado
-      let total = CONFIG.BALLOON_COUNT; let remaining = total;
-      let particles = []; let rafId = null;
-      // Fogos contínuos no finale
-      let rockets = [];
-      let finaleActive = false;
-      let finaleTimer = null;
-      let stringMap = new WeakMap(); // balão -> path
-      let driftMap  = new WeakMap(); // balão -> drift meta
-      let driftRaf = null;           // frame de drift
+      // Aguarda DOM pronto
+      window.addEventListener('DOMContentLoaded', boot);
 
-      // alvo da forca (MENINO/MENINA ou custom)
-      let targetWord = 'MENINA';
-      // ordem aleatória de revelação (exclui a última letra)
-      let revealOrder = [];
+      function boot() {
+        // Refs
+        const stage = document.getElementById('stage');
+        const cluster = document.getElementById('cluster');
+        const stringsSvg = document.getElementById('strings');
+        const counter = document.getElementById('counter');
+        const floatingCounter = document.getElementById('floatingCounter');
+        const reveal = document.getElementById('reveal');
+        const msgEl = document.getElementById('msg');
+        const subEl = document.getElementById('submsg');
+        const babyNameSpan = document.getElementById('babyName');
+        const againBtn = document.getElementById('againBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const progress = document.getElementById('progress');
+        const bgCanvas = document.getElementById('bgConfetti');
+        const bgCtx = bgCanvas.getContext('2d');
+        const confettiCanvas = document.getElementById('confetti');
+        const ctx = confettiCanvas.getContext('2d');
 
-      // ===== Tema e parâmetros via URL =====
-      try {
-        if (CONFIG.USE_URL_PARAMS) {
-          const url = new URL(location.href);
-          const sexo = (url.searchParams.get('sexo') || '').toLowerCase();
-          const cor = url.searchParams.get('cor');
-          const msg = url.searchParams.get('msg');
-          if (sexo === 'menino') { CONFIG.REVEAL_MESSAGE = 'É MENINO! 💙'; CONFIG.REVEAL_SUB = 'Parabéns! Que venha com muita saúde.'; CONFIG.THEME_COLOR = '#1e90ff'; targetWord = 'MENINO'; }
-          else if (sexo === 'menina') { CONFIG.REVEAL_MESSAGE = 'É MENINA! 🎀'; CONFIG.REVEAL_SUB = 'Parabéns! Que venha com muita saúde.'; CONFIG.THEME_COLOR = '#ff78b2'; targetWord = 'MENINA'; }
-          if (typeof cor === 'string' && /^#([0-9a-f]{3}){1,2}$/i.test(cor)) CONFIG.THEME_COLOR = cor;
-          if (msg) CONFIG.REVEAL_MESSAGE = decodeURIComponent(msg);
-        }
-      } catch(e){}
+        if (!stage || !cluster) { console.error('[Erro] Elementos essenciais não encontrados'); return; }
 
-      // Se a mensagem contiver MENINO/MENINA, sincroniza
-      if (/MENINO/i.test(CONFIG.REVEAL_MESSAGE)) targetWord = 'MENINO';
-      if (/MENINA/i.test(CONFIG.REVEAL_MESSAGE)) targetWord = 'MENINA';
+        // Utils
+        const lerp = (a, b, t) => a + (b - a) * t;
+        const rand = (min, max) => Math.random() * (max - min) + min;
+        const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+        // util: cor
+        const hexToRgb = (hex) => { const m = /^#?([0-9a-f]{6}|[0-9a-f]{3})$/i.exec(hex); if (!m) return { r: 240, g: 240, b: 240 }; let h = m[1]; if (h.length === 3) h = h.split('').map(x => x + x).join(''); const num = parseInt(h, 16); return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 }; };
+        const rgbToHex = (r, g, b) => '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+        const shade = (hex, p) => {
+          const { r, g, b } = hexToRgb(hex); const t = p >= 0 ? 255 : 0; const f = Math.abs(p); return rgbToHex(
+            Math.round(r + (t - r) * f), Math.round(g + (t - g) * f), Math.round(b + (t - b) * f)
+          );
+        };
+        const gradientFor = (base) => {
+          const light = shade(base, 0.15); // +15%
+          const dark = shade(base, -0.12); // -12%
+          return `radial-gradient(120% 120% at 30% 30%, #ffffff88 0 30%, transparent 40%),`
+            + `radial-gradient(110% 90% at 60% 20%, #ffffff55 0 15%, transparent 26%),`
+            + `linear-gradient(180deg, ${light} 0%, ${base} 40%, ${dark} 100%)`;
+        };
 
-      function setThemeColor(hex){ document.documentElement.style.setProperty('--accent', hex); }
+        // Estado
+        let total = CONFIG.BALLOON_COUNT; let remaining = total;
+        let particles = []; let rafId = null;
+        // Fogos contínuos no finale
+        let rockets = [];
+        let finaleActive = false;
+        let finaleTimer = null;
+        let stringMap = new WeakMap(); // balão -> path
+        let driftMap = new WeakMap(); // balão -> drift meta
+        let driftRaf = null;           // frame de drift
 
-      // ===== Forca (UI) — letras aleatórias, sem revelar última letra
-      function renderProgress(lettersShown=0){
-        progress.innerHTML = '';
-        const N = targetWord.length;
-        // garante ordem inicializada
-        if (!revealOrder || revealOrder.length !== Math.max(0, N-1)) initRevealOrder();
-        const shown = Math.min(lettersShown, Math.max(0, N-1));
-        const revealedSet = new Set(revealOrder.slice(0, shown));
-        for (let i=0;i<N;i++){
-          const shouldReveal = (i < N-1) && revealedSet.has(i);
-          const box = document.createElement('div');
-          box.className = 'box' + (shouldReveal ? '' : ' empty');
-          box.textContent = shouldReveal ? targetWord[i] : '_';
-          progress.appendChild(box);
-        }
-      }
+        // alvo da forca (MENINO/MENINA ou custom)
+        let targetWord = 'MENINA';
+        // ordem aleatória de revelação (exclui a última letra)
+        let revealOrder = [];
 
-      function lettersToShow(){
-        const N = targetWord.length;
-        const popped = total - remaining;
-        const extra = Math.max(0, popped - (total - N)); // 0..N
-        return Math.min(N - 1, extra); // nunca revela a última letra
-      }
-
-      function shuffle(arr){
-        for (let i=arr.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [arr[i],arr[j]] = [arr[j],arr[i]]; }
-        return arr;
-      }
-      function initRevealOrder(){
-        const N = targetWord.length;
-        const base = Array.from({length: Math.max(0,N-1)}, (_,i)=>i); // 0..N-2
-        revealOrder = shuffle(base);
-      }
-
-      // ===== Balões e cordas =====
-      function ensureAnchor(){ let a=document.getElementById('anchor'); if(!a){ a=document.createElement('div'); a.id='anchor'; a.className='anchor'; cluster.appendChild(a);} return a; }
-      function ensureStringsSvg(){ let svg=document.getElementById('strings'); if(!svg){ svg=document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.setAttribute('id','strings'); svg.setAttribute('class','strings'); cluster.prepend(svg);} const rect=cluster.getBoundingClientRect(); svg.setAttribute('viewBox',`0 0 ${rect.width} ${rect.height}`); svg.setAttribute('width', rect.width); svg.setAttribute('height', rect.height); while(svg.firstChild) svg.removeChild(svg.firstChild); return svg; }
-
-      function createWavyPath(sx, sy, ex, ey){
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        const dx = ex - sx, dy = ey - sy;
-        const len = Math.hypot(dx, dy) || 1;
-        const segs = Math.max(4, Math.round(len / 60));
-        const amplitude = Math.min(16, Math.max(6, len / 20));
-        const ux = dx / len, uy = dy / len; const px = -uy, py = ux;
-        let d = `M ${sx} ${sy}`;
-        for (let i=1; i<=segs; i++){
-          const t0=(i-1)/segs, t1=i/segs;
-          const mx0=sx+dx*t0, my0=sy+dy*t0; const mx1=sx+dx*t1, my1=sy+dy*t1;
-          const midx=(mx0+mx1)/2, midy=(my0+my1)/2; const dir=(i%2===0)?1:-1;
-          const cx=midx+px*amplitude*dir, cy=midy+py*amplitude*dir; d+=` Q ${cx} ${cy} ${mx1} ${my1}`;
-        }
-        path.setAttribute('d', d);
-        path.setAttribute('fill', 'none');
-        path.setAttribute('stroke', '#9ca3af');
-        path.setAttribute('stroke-opacity', '0.8');
-        path.setAttribute('stroke-width', '2');
-        path.setAttribute('vector-effect', 'non-scaling-stroke');
-        path.setAttribute('stroke-linecap', 'round');
-        path.setAttribute('stroke-linejoin', 'round');
-        return path;
-      }
-
-      function createBalloon(scale, delay, duration){
-        const b = document.createElement('button');
-        b.className = 'balloon';
-        b.setAttribute('aria-label','Balão — clique para estourar');
-        b.style.setProperty('--scale', scale);
-        b.style.setProperty('--delay', `${delay.toFixed(2)}s`);
-        b.style.setProperty('--duration', `${duration.toFixed(2)}s`);
-        if (Math.random() < (CONFIG.STRING_RATIO ?? 1)) b.setAttribute('data-string','1');
-        b.addEventListener('click', () => popBalloon(b));
-        b.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); popBalloon(b); } });
-        return b;
-      }
-
-      function updateCounters(){
-        const text = remaining>0 ? `Faltam ${remaining} balão${remaining===1?'':'es'}` : 'Todos estourados!';
-        counter.textContent = text; floatingCounter.textContent = text;
-        renderProgress(lettersToShow());
-      }
-
-      function popBalloon(b){
-        if (b.classList.contains('popped')) return;
-        const line = stringMap.get(b); if (line && line.parentNode) line.parentNode.removeChild(line); stringMap.delete(b);
-        driftMap.delete(b);
-        b.style.removeProperty('animation');
-        b.classList.add('popped'); remaining--; updateCounters();
-        spawnBurstAtElement(b, 14);
-        if (remaining<=0) revealFinal();
-      }
-
-      function revealFinal(){
-        msgEl.textContent = CONFIG.REVEAL_MESSAGE; subEl.textContent = CONFIG.REVEAL_SUB;
-        setThemeColor(CONFIG.THEME_COLOR); reveal.classList.add('show');
-        finaleShow(); // confetes grandes + fogos (contínuos)
-      }
-
-      function resetGame(){
-        cluster.innerHTML = '';
-        const svg = ensureStringsSvg();
-        const anchor = ensureAnchor();
-
-        reveal.classList.remove('show');
-        // encerra show contínuo (se ativo)
-        finaleActive = false;
-        if (finaleTimer) { clearInterval(finaleTimer); finaleTimer = null; }
-        rockets = [];
-        total = CONFIG.BALLOON_COUNT; remaining = total; particles = []; cancelAnimationFrame(rafId); rafId = null;
-        stringMap = new WeakMap(); driftMap = new WeakMap();
-        // reinicia ordem aleatória de letras
-        initRevealOrder();
-        resizeCanvases();
-
-        const clusterRect = cluster.getBoundingClientRect();
-        const anchorRect = anchor.getBoundingClientRect();
-        const stageRect = stage.getBoundingClientRect();
-        if ((clusterRect.width < 10 || clusterRect.height < 10) && (stageRect.width > 0 && stageRect.height > 0)) { requestAnimationFrame(resetGame); return; }
-
-        // Cria balões
-        for (let i=0;i<total;i++){
-          const scale = rand(0.9, 1.15), delay = rand(0,1.0), duration = rand(2.4,3.2);
-          const balloon = createBalloon(scale, delay, duration);
-
-          // aplicar cor base #F5F5F5 (ou paleta se ativar RANDOMIZE_COLORS)
-          let base = CONFIG.BASE_COLOR;
-          if (CONFIG.RANDOMIZE_COLORS && Array.isArray(CONFIG.PALETTE) && CONFIG.PALETTE.length>0){
-            base = CONFIG.PALETTE[Math.floor(Math.random()*CONFIG.PALETTE.length)];
+        // ===== Tema e parâmetros via URL =====
+        try {
+          if (CONFIG.USE_URL_PARAMS) {
+            const url = new URL(location.href);
+            const sexo = (url.searchParams.get('sexo') || '').toLowerCase();
+            const cor = url.searchParams.get('cor');
+            const msg = url.searchParams.get('msg');
+            const nome = url.searchParams.get('nome') || url.searchParams.get('name');
+            if (nome) CONFIG.BABY_NAME = decodeURIComponent(nome);
+            if (sexo === 'menino') { CONFIG.REVEAL_MESSAGE = 'É MENINO! 💙'; if (subEl) subEl.textContent = 'Parabéns! Que venha com muita saúde.'; CONFIG.THEME_COLOR = '#1e90ff'; targetWord = 'MENINO'; }
+            else if (sexo === 'menina') { CONFIG.REVEAL_MESSAGE = 'É MENINA! 🎀'; if (subEl) subEl.textContent = 'Parabéns! Que venha com muita saúde.'; CONFIG.THEME_COLOR = '#ff78b2'; targetWord = 'MENINA'; }
+            if (typeof cor === 'string' && /^#([0-9a-f]{3}){1,2}$/i.test(cor)) CONFIG.THEME_COLOR = cor;
+            if (msg) CONFIG.REVEAL_MESSAGE = decodeURIComponent(msg);
           }
-          balloon.style.background = gradientFor(base);
-          const neck = shade(base,-0.12);
-          balloon.style.setProperty('--neckColor', neck);
+        } catch (e) { }
 
+        // Se a mensagem contiver MENINO/MENINA, sincroniza
+        if (/MENINO/i.test(CONFIG.REVEAL_MESSAGE)) targetWord = 'MENINO';
+        if (/MENINA/i.test(CONFIG.REVEAL_MESSAGE)) targetWord = 'MENINA';
 
-          const R = Math.min(clusterRect.width, clusterRect.height)/2 - 20;
-          const t = Math.random();
-          const r = Math.sqrt(t) * R;
-          const ang = rand(0, Math.PI*2);
-          const cx = clusterRect.width/2, cy = clusterRect.height/2;
-          const x = cx + r*Math.cos(ang);
-          const y = cy + r*Math.sin(ang);
+        function setThemeColor(hex) { document.documentElement.style.setProperty('--accent', hex); }
 
-          const w = Math.min(clusterRect.width, 120) * (0.6 + 0.4*Math.random());
-          const h = w * 4/3;
-          balloon.style.width = w+'px';
-          balloon.style.left = (x - w/2)+'px';
-          balloon.style.top  = (y - h/2)+'px';
-          balloon.style.zIndex = String(1000 + Math.floor(y));
+        // ===== Forca (UI) — letras aleatórias, com controle da última letra
+        function renderProgress(lettersShown = 0, revealLast = false) {
+          progress.innerHTML = '';
+          const N = targetWord.length;
 
-          // corda
-          const ax = anchorRect.left + anchorRect.width/2 - clusterRect.left;
-          const ay = anchorRect.top + anchorRect.height/2 - clusterRect.top;
-          const sx = x; const sy = (y - h/2) + h + 6;
-          const path = createWavyPath(sx, sy, ax, ay);
-          svg.appendChild(path); stringMap.set(balloon, path);
+          // garante ordem inicializada
+          if (!revealOrder || revealOrder.length !== Math.max(0, N - 1)) initRevealOrder();
 
-          // drift
-          const drift = { baseX:x, baseY:y, w, h,
-            ampX: rand(10, 28), spdX: rand(0.4, 0.9), phX: rand(0, Math.PI*2),
-            ampY: rand(6, 14),  spdY: rand(0.2, 0.6), phY: rand(0, Math.PI*2)
-          };
-          driftMap.set(balloon, drift);
+          // mostra no máx. N-1 letras pelos balões; a última depende de revealLast
+          const shown = Math.min(lettersShown, Math.max(0, N - 1));
+          const revealedSet = new Set(revealOrder.slice(0, shown));
 
-          cluster.appendChild(balloon);
+          for (let i = 0; i < N; i++) {
+            const box = document.createElement('div');
+            const isLast = (i === N - 1);
+            const shouldReveal = isLast ? revealLast : revealedSet.has(i);
+
+            box.className = 'box' + (shouldReveal ? '' : ' empty');
+            box.textContent = shouldReveal ? targetWord[i] : '_';
+            progress.appendChild(box);
+          }
         }
 
-        // inicia drift
-        startDrift();
-        updateCounters();
-      }
 
-      function startDrift(){
-        if (driftRaf) cancelAnimationFrame(driftRaf);
-        const start = performance.now();
-        function loop(now){
-          const t = (now - start)/1000;
-          const clRect = cluster.getBoundingClientRect();
-          const anRect = document.getElementById('anchor').getBoundingClientRect();
-          const ax = anRect.left + anRect.width/2 - clRect.left;
-          const ay = anRect.top + anRect.height/2 - clRect.top;
-          cluster.querySelectorAll('.balloon:not(.popped)').forEach(b => {
-            const d = driftMap.get(b); if (!d) return;
-            const nx = d.baseX + d.ampX * Math.sin(t * d.spdX + d.phX);
-            const ny = d.baseY + d.ampY * Math.sin(t * d.spdY + d.phY);
-            b.style.left = (nx - d.w/2) + 'px';
-            b.style.top  = (ny - d.h/2) + 'px';
-            const path = stringMap.get(b);
-            if (path) {
-              const sx = nx; const sy = (ny - d.h/2) + d.h + 6;
-              path.setAttribute('d', createPathD(sx, sy, ax, ay));
+        function lettersToShow() {
+          const N = targetWord.length;
+          const popped = total - remaining;
+          const extra = Math.max(0, popped - (total - N)); // 0..N
+          return Math.min(N - 1, extra); // nunca revela a última letra
+        }
+
+        function shuffle(arr) {
+          for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[arr[i], arr[j]] = [arr[j], arr[i]]; }
+          return arr;
+        }
+        function initRevealOrder() {
+          const N = targetWord.length;
+          const base = Array.from({ length: Math.max(0, N - 1) }, (_, i) => i); // 0..N-2
+          revealOrder = shuffle(base);
+        }
+
+        // ===== Balões e cordas =====
+        function ensureAnchor() { let a = document.getElementById('anchor'); if (!a) { a = document.createElement('div'); a.id = 'anchor'; a.className = 'anchor'; cluster.appendChild(a); } return a; }
+        function ensureStringsSvg() { let svg = document.getElementById('strings'); if (!svg) { svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('id', 'strings'); svg.setAttribute('class', 'strings'); cluster.prepend(svg); } const rect = cluster.getBoundingClientRect(); svg.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`); svg.setAttribute('width', rect.width); svg.setAttribute('height', rect.height); while (svg.firstChild) svg.removeChild(svg.firstChild); return svg; }
+
+        function createWavyPath(sx, sy, ex, ey) {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          const dx = ex - sx, dy = ey - sy;
+          const len = Math.hypot(dx, dy) || 1;
+          const segs = Math.max(4, Math.round(len / 60));
+          const amplitude = Math.min(16, Math.max(6, len / 20));
+          const ux = dx / len, uy = dy / len; const px = -uy, py = ux;
+          let d = `M ${sx} ${sy}`;
+          for (let i = 1; i <= segs; i++) {
+            const t0 = (i - 1) / segs, t1 = i / segs;
+            const mx0 = sx + dx * t0, my0 = sy + dy * t0; const mx1 = sx + dx * t1, my1 = sy + dy * t1;
+            const midx = (mx0 + mx1) / 2, midy = (my0 + my1) / 2; const dir = (i % 2 === 0) ? 1 : -1;
+            const cx = midx + px * amplitude * dir, cy = midy + py * amplitude * dir; d += ` Q ${cx} ${cy} ${mx1} ${my1}`;
+          }
+          path.setAttribute('d', d);
+          path.setAttribute('fill', 'none');
+          path.setAttribute('stroke', '#9ca3af');
+          path.setAttribute('stroke-opacity', '0.8');
+          path.setAttribute('stroke-width', '2');
+          path.setAttribute('vector-effect', 'non-scaling-stroke');
+          path.setAttribute('stroke-linecap', 'round');
+          path.setAttribute('stroke-linejoin', 'round');
+          return path;
+        }
+
+        function createBalloon(scale, delay, duration) {
+          const b = document.createElement('button');
+          b.className = 'balloon';
+          b.setAttribute('aria-label', 'Balão — clique para estourar');
+          b.style.setProperty('--scale', scale);
+          b.style.setProperty('--delay', `${delay.toFixed(2)}s`);
+          b.style.setProperty('--duration', `${duration.toFixed(2)}s`);
+          if (Math.random() < (CONFIG.STRING_RATIO ?? 1)) b.setAttribute('data-string', '1');
+          b.addEventListener('click', () => popBalloon(b));
+          b.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); popBalloon(b); } });
+          return b;
+        }
+
+        function updateCounters() {
+          const text = remaining > 0 ? `Faltam ${remaining} balão${remaining === 1 ? '' : 'es'}` : 'Todos estourados!';
+          counter.textContent = text;
+          floatingCounter.textContent = text;
+
+          // mostra a última letra somente quando todos os balões forem estourados
+          renderProgress(lettersToShow(), remaining === 0);
+        }
+
+        function popBalloon(b) {
+          if (b.classList.contains('popped')) return;
+          const line = stringMap.get(b); if (line && line.parentNode) line.parentNode.removeChild(line); stringMap.delete(b);
+          driftMap.delete(b);
+          b.style.removeProperty('animation');
+          b.classList.add('popped'); remaining--; updateCounters();
+          spawnBurstAtElement(b, 14);
+          if (remaining <= 0) revealFinal();
+        }
+
+        function revealFinal() {
+          // força exibir a última letra no momento do resultado
+          renderProgress(targetWord.length, true);
+
+          msgEl.textContent = CONFIG.REVEAL_MESSAGE;
+          subEl.textContent = CONFIG.REVEAL_SUB;
+          setThemeColor(CONFIG.THEME_COLOR);
+          reveal.classList.add('show');
+          finaleShow();
+        }
+
+
+        function resetGame() {
+          cluster.innerHTML = '';
+          const svg = ensureStringsSvg();
+          const anchor = ensureAnchor();
+
+          reveal.classList.remove('show');
+          // encerra show contínuo (se ativo)
+          finaleActive = false;
+          if (finaleTimer) { clearInterval(finaleTimer); finaleTimer = null; }
+          rockets = [];
+          total = CONFIG.BALLOON_COUNT; remaining = total; particles = []; cancelAnimationFrame(rafId); rafId = null;
+          stringMap = new WeakMap(); driftMap = new WeakMap();
+          // reinicia ordem aleatória de letras
+          initRevealOrder();
+          resizeCanvases();
+
+          const clusterRect = cluster.getBoundingClientRect();
+          const anchorRect = anchor.getBoundingClientRect();
+          const stageRect = stage.getBoundingClientRect();
+          if ((clusterRect.width < 10 || clusterRect.height < 10) && (stageRect.width > 0 && stageRect.height > 0)) { requestAnimationFrame(resetGame); return; }
+
+          // Cria balões
+          for (let i = 0; i < total; i++) {
+            const scale = rand(0.9, 1.15), delay = rand(0, 1.0), duration = rand(2.4, 3.2);
+            const balloon = createBalloon(scale, delay, duration);
+
+            // aplicar cores dos confetes (ou BASE_COLOR quando desativado)
+            let base = CONFIG.BASE_COLOR;
+            if (CONFIG.RANDOMIZE_COLORS && Array.isArray(CONFIG.PALETTE) && CONFIG.PALETTE.length > 0) {
+              base = CONFIG.PALETTE[Math.floor(Math.random() * CONFIG.PALETTE.length)];
             }
-          });
+            balloon.style.background = gradientFor(base);
+            const neck = shade(base, -0.12);
+            balloon.style.setProperty('--neckColor', neck);
+
+            const R = Math.min(clusterRect.width, clusterRect.height) / 2 - 20;
+            const t = Math.random();
+            const r = Math.sqrt(t) * R;
+            const ang = rand(0, Math.PI * 2);
+            const cx = clusterRect.width / 2, cy = clusterRect.height / 2;
+            const x = cx + r * Math.cos(ang);
+            const y = cy + r * Math.sin(ang);
+
+            const w = Math.min(clusterRect.width, 120) * (0.6 + 0.4 * Math.random());
+            const h = w * 4 / 3;
+            balloon.style.width = w + 'px';
+            balloon.style.left = (x - w / 2) + 'px';
+            balloon.style.top = (y - h / 2) + 'px';
+            balloon.style.zIndex = String(1000 + Math.floor(y));
+
+            // corda
+            const ax = anchorRect.left + anchorRect.width / 2 - clusterRect.left;
+            const ay = anchorRect.top + anchorRect.height / 2 - clusterRect.top;
+            const sx = x; const sy = (y - h / 2) + h + 6;
+            const path = createWavyPath(sx, sy, ax, ay);
+            svg.appendChild(path); stringMap.set(balloon, path);
+
+            // drift
+            const drift = {
+              baseX: x, baseY: y, w, h,
+              ampX: rand(10, 28), spdX: rand(0.4, 0.9), phX: rand(0, Math.PI * 2),
+              ampY: rand(6, 14), spdY: rand(0.2, 0.6), phY: rand(0, Math.PI * 2)
+            };
+            driftMap.set(balloon, drift);
+
+            cluster.appendChild(balloon);
+          }
+
+          // inicia drift
+          startDrift();
+          updateCounters();
+        }
+
+        function startDrift() {
+          if (driftRaf) cancelAnimationFrame(driftRaf);
+          const start = performance.now();
+          function loop(now) {
+            const t = (now - start) / 1000;
+            const clRect = cluster.getBoundingClientRect();
+            const anRect = document.getElementById('anchor').getBoundingClientRect();
+            const ax = anRect.left + anRect.width / 2 - clRect.left;
+            const ay = anRect.top + anRect.height / 2 - clRect.top;
+            cluster.querySelectorAll('.balloon:not(.popped)').forEach(b => {
+              const d = driftMap.get(b); if (!d) return;
+              const nx = d.baseX + d.ampX * Math.sin(t * d.spdX + d.phX);
+              const ny = d.baseY + d.ampY * Math.sin(t * d.spdY + d.phY);
+              b.style.left = (nx - d.w / 2) + 'px';
+              b.style.top = (ny - d.h / 2) + 'px';
+              const path = stringMap.get(b);
+              if (path) {
+                const sx = nx; const sy = (ny - d.h / 2) + d.h + 6;
+                path.setAttribute('d', createPathD(sx, sy, ax, ay));
+              }
+            });
+            driftRaf = requestAnimationFrame(loop);
+          }
           driftRaf = requestAnimationFrame(loop);
         }
-        driftRaf = requestAnimationFrame(loop);
-      }
 
-      // gera apenas o atributo 'd' (mesma lógica do createWavyPath)
-      function createPathD(sx, sy, ex, ey){
-        const dx = ex - sx, dy = ey - sy; const len = Math.hypot(dx, dy) || 1;
-        const segs = Math.max(4, Math.round(len / 60));
-        const amplitude = Math.min(16, Math.max(6, len / 20));
-        const ux = dx / len, uy = dy / len; const px = -uy, py = ux;
-        let d = `M ${sx} ${sy}`;
-        for (let i=1; i<=segs; i++){
-          const t0=(i-1)/segs, t1=i/segs; const mx0=sx+dx*t0, my0=sy+dy*t0; const mx1=sx+dx*t1, my1=sy+dy*t1; const midx=(mx0+mx1)/2, midy=(my0+my1)/2; const dir=(i%2===0)?1:-1; const cx=midx+px*amplitude*dir, cy=midy+py*amplitude*dir; d+=` Q ${cx} ${cy} ${mx1} ${my1}`; }
-        return d;
-      }
+        // gera apenas o atributo 'd' (mesma lógica do createWavyPath)
+        function createPathD(sx, sy, ex, ey) {
+          const dx = ex - sx, dy = ey - sy; const len = Math.hypot(dx, dy) || 1;
+          const segs = Math.max(4, Math.round(len / 60));
+          const amplitude = Math.min(16, Math.max(6, len / 20));
+          const ux = dx / len, uy = dy / len; const px = -uy, py = ux;
+          let d = `M ${sx} ${sy}`;
+          for (let i = 1; i <= segs; i++) {
+            const t0 = (i - 1) / segs, t1 = i / segs; const mx0 = sx + dx * t0, my0 = sy + dy * t0; const mx1 = sx + dx * t1, my1 = sy + dy * t1; const midx = (mx0 + mx1) / 2, midy = (my0 + my1) / 2; const dir = (i % 2 === 0) ? 1 : -1; const cx = midx + px * amplitude * dir, cy = midy + py * amplitude * dir; d += ` Q ${cx} ${cy} ${mx1} ${my1}`;
+          }
+          return d;
+        }
 
-      // ===== Confetes (fundo sutil) =====
-      let bgPieces = []; let bgRaf=null;
-      function resizeCanvases(){ bgCanvas.width = innerWidth; bgCanvas.height = innerHeight; confettiCanvas.width = innerWidth; confettiCanvas.height = innerHeight; }
-      function spawnBgPiece(){
-        const size = rand(CONFIG.BG_CONFETTI_SIZE[0], CONFIG.BG_CONFETTI_SIZE[1]);
-        const x = rand(-20, innerWidth+20); const y = -10; const speed = rand(CONFIG.BG_CONFETTI_SPEED[0], CONFIG.BG_CONFETTI_SPEED[1]); const drift = rand(-10, 10);
-        bgPieces.push({x,y,size,speed,drift,rot:rand(0,Math.PI*2),spin:rand(-0.03,0.03),alpha:CONFIG.BG_CONFETTI_OPACITY,color:(Array.isArray(CONFIG.BG_CONFETTI_COLORS)&&CONFIG.BG_CONFETTI_COLORS.length>0?CONFIG.BG_CONFETTI_COLORS[Math.floor(Math.random()*CONFIG.BG_CONFETTI_COLORS.length)]:(Math.random()<.5?CONFIG.THEME_COLOR:CONFIG.SECONDARY_COLOR))});
-      }
-      function bgLoop(){
-        bgCtx.clearRect(0,0,bgCanvas.width,bgCanvas.height);
-        // spawn rate
-        if (Math.random() < 0.015 * CONFIG.BG_CONFETTI_DENSITY) spawnBgPiece();
-        bgPieces = bgPieces.filter(p=> p.y < innerHeight+12);
-        for (const p of bgPieces){ p.y += p.speed/60; p.x += p.drift/240; p.rot += p.spin; bgCtx.save(); bgCtx.translate(p.x, p.y); bgCtx.rotate(p.rot); bgCtx.globalAlpha = p.alpha; bgCtx.fillStyle = p.color; bgCtx.fillRect(-p.size/2, -p.size/2, p.size, p.size); bgCtx.restore(); }
-        bgRaf = requestAnimationFrame(bgLoop);
-      }
+        // ===== Confetes (fundo sutil) =====
+        let bgPieces = []; let bgRaf = null;
+        function resizeCanvases() { bgCanvas.width = innerWidth; bgCanvas.height = innerHeight; confettiCanvas.width = innerWidth; confettiCanvas.height = innerHeight; }
+        function spawnBgPiece() {
+          const size = rand(CONFIG.BG_CONFETTI_SIZE[0], CONFIG.BG_CONFETTI_SIZE[1]);
+          const x = rand(-20, innerWidth + 20); const y = -10; const speed = rand(CONFIG.BG_CONFETTI_SPEED[0], CONFIG.BG_CONFETTI_SPEED[1]); const drift = rand(-10, 10);
+          const colorPool = (Array.isArray(CONFIG.BG_CONFETTI_COLORS) && CONFIG.BG_CONFETTI_COLORS.length > 0 ? CONFIG.BG_CONFETTI_COLORS : [CONFIG.THEME_COLOR, CONFIG.SECONDARY_COLOR]);
+          bgPieces.push({ x, y, size, speed, drift, rot: rand(0, Math.PI * 2), spin: rand(-0.03, 0.03), alpha: CONFIG.BG_CONFETTI_OPACITY, color: colorPool[Math.floor(Math.random() * colorPool.length)] });
+        }
+        function bgLoop() {
+          bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+          // spawn rate
+          if (Math.random() < 0.015 * CONFIG.BG_CONFETTI_DENSITY) spawnBgPiece();
+          bgPieces = bgPieces.filter(p => p.y < innerHeight + 12);
+          for (const p of bgPieces) { p.y += p.speed / 60; p.x += p.drift / 240; p.rot += p.spin; bgCtx.save(); bgCtx.translate(p.x, p.y); bgCtx.rotate(p.rot); bgCtx.globalAlpha = p.alpha; bgCtx.fillStyle = p.color; bgCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size); bgCtx.restore(); }
+          bgRaf = requestAnimationFrame(bgLoop);
+        }
 
-      // ===== Confete e fogos (finale) =====
-      function spawnParticle(x,y,size,angle,speed,life,color){ particles.push({x,y,size,angle,speed,life,color,rotate:rand(0,Math.PI*2),spin: rand(-0.1, 0.1), vy:0}); }
-      function spawnBurst(x,y,count=24, sizeMul=1){ for (let i=0;i<count;i++){ const a=rand(0,Math.PI*2); const s=rand(3,7)*sizeMul; const sz=rand(3,6)*sizeMul; const life=rand(40,80); const color=Math.random()<0.5?CONFIG.THEME_COLOR:CONFIG.SECONDARY_COLOR; spawnParticle(x,y,sz,a,s,life,color);} animateParticles(); }
-      function spawnBurstAtElement(el,count=18){
-        // Explode exatamente no centro visível do balão (ligeiramente acima do meio)
-        const r = el.getBoundingClientRect();
-        const x = r.left + r.width / 2;
-        const y = r.top + r.height * 0.4; // próximo ao "miolo" do balão
-        spawnBurst(x, y, count, 1);
-      }
+        // ===== Confete e fogos (finale) =====
+        function spawnParticle(x, y, size, angle, speed, life, color) { particles.push({ x, y, size, angle, speed, life, color, rotate: rand(0, Math.PI * 2), spin: rand(-0.1, 0.1), vy: 0 }); }
+        function spawnBurst(x, y, count = 24, sizeMul = 1) { for (let i = 0; i < count; i++) { const a = rand(0, Math.PI * 2); const s = rand(3, 7) * sizeMul; const sz = rand(3, 6) * sizeMul; const life = rand(40, 80); const color = Math.random() < 0.5 ? CONFIG.THEME_COLOR : CONFIG.SECONDARY_COLOR; spawnParticle(x, y, sz, a, s, life, color); } animateParticles(); }
+        function spawnBurstAtElement(el, count = 18) {
+          // Explode exatamente no centro visível do balão (ligeiramente acima do meio)
+          const r = el.getBoundingClientRect();
+          const x = r.left + r.width / 2;
+          const y = r.top + r.height * 0.4; // próximo ao "miolo" do balão
+          spawnBurst(x, y, count, 1);
+        }
 
-      function animateParticles(){
-        if (rafId) return;
-        const g = 0.09;
-        function frame(){
-          ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+        function animateParticles() {
+          if (rafId) return;
+          const g = 0.09;
+          function frame() {
+            ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
 
-          // Atualiza/desenha foguetes
-          const newRockets = [];
-          for (const r of rockets){
-            r.y += r.vy; r.life -= 1;
-            ctx.fillStyle = r.color;
-            ctx.fillRect(r.x-1.5, r.y-6, 3, 12);
-            if (r.life <= 0){
-              spawnBurst(r.x, r.y, 60, 1.3);
-            } else {
-              newRockets.push(r);
+            // Atualiza/desenha foguetes
+            const newRockets = [];
+            for (const r of rockets) {
+              r.y += r.vy; r.life -= 1;
+              ctx.fillStyle = r.color;
+              ctx.fillRect(r.x - 1.5, r.y - 6, 3, 12);
+              if (r.life <= 0) {
+                spawnBurst(r.x, r.y, 60, 1.3);
+              } else {
+                newRockets.push(r);
+              }
             }
-          }
-          rockets = newRockets;
+            rockets = newRockets;
 
-          // Atualiza/desenha confetes (partículas)
-          particles = particles.filter(p=>p.life>0);
-          for (const p of particles){
-            p.vy += g;
-            p.x += Math.cos(p.angle)*p.speed;
-            p.y += Math.sin(p.angle)*p.speed + p.vy;
-            p.rotate += p.spin;
-            p.life -= 1;
-            ctx.save();
-            ctx.translate(p.x,p.y);
-            ctx.rotate(p.rotate);
-            ctx.fillStyle=p.color;
-            ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size);
-            ctx.restore();
-          }
+            // Atualiza/desenha confetes (partículas)
+            particles = particles.filter(p => p.life > 0);
+            for (const p of particles) {
+              p.vy += g;
+              p.x += Math.cos(p.angle) * p.speed;
+              p.y += Math.sin(p.angle) * p.speed + p.vy;
+              p.rotate += p.spin;
+              p.life -= 1;
+              ctx.save();
+              ctx.translate(p.x, p.y);
+              ctx.rotate(p.rotate);
+              ctx.fillStyle = p.color;
+              ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+              ctx.restore();
+            }
 
-          rafId = (particles.length>0 || rockets.length>0 || finaleActive) ? requestAnimationFrame(frame) : null;
+            rafId = (particles.length > 0 || rockets.length > 0 || finaleActive) ? requestAnimationFrame(frame) : null;
+          }
+          rafId = requestAnimationFrame(frame);
         }
-        rafId = requestAnimationFrame(frame);
-      }
 
-      function fireworks(x,y){
-        // Insere um foguete na simulação (desenhado dentro do loop de partículas)
-        rockets.push({ x, y: innerHeight + 30, vy: -8 - Math.random()*2, life: 60, color: CONFIG.THEME_COLOR });
-      }
-
-      function finaleShow(){
-        const w = innerWidth, h = innerHeight;
-        finaleActive = true;
-        // Dispara alguns de início
-        for (let i=0;i<5;i++){ spawnBurst( lerp(w*0.1,w*0.9,Math.random()), lerp(h*0.15,h*0.6,Math.random()), 48, 1.2 ); }
-        fireworks(w*0.25, h*0.75);
-        fireworks(w*0.5,  h*0.78);
-        fireworks(w*0.75, h*0.72);
-        animateParticles();
-        // Loop contínuo até reiniciar
-        if (finaleTimer) clearInterval(finaleTimer);
-        finaleTimer = setInterval(()=>{
-          // Explosões aleatórias
-          for (let i=0;i<2;i++){
-            spawnBurst( lerp(w*0.1,w*0.9,Math.random()), lerp(h*0.15,h*0.6,Math.random()), 36, 1.1 );
-          }
-          // Novos fogos
-          fireworks( lerp(w*0.2,w*0.8,Math.random()), h*0.8 );
-        }, 1200);
-      }
-
-      async function shareResult(){ const text=`Chá de Revelação: ${CONFIG.REVEAL_MESSAGE}`; try{ if(navigator.share){ await navigator.share({title:'Chá de Revelação', text, url:location.href}); } else { await navigator.clipboard.writeText(`${text} — ${location.href}`); alert('Texto copiado! Cole onde quiser ✨'); } } catch(e){} }
-
-      // Eventos UI
-      againBtn.addEventListener('click', resetGame);
-      resetBtn.addEventListener('click', resetGame);
-      shareBtn.addEventListener('click', shareResult);
-
-      // Inicialização
-      function resizeAll(){ resizeCanvases(); const rect=cluster.getBoundingClientRect(); stringsSvg.setAttribute('viewBox',`0 0 ${rect.width} ${rect.height}`); stringsSvg.setAttribute('width', rect.width); stringsSvg.setAttribute('height', rect.height); }
-      function firstStart(){
-        // Ajustes leves de performance em telas pequenas
-        if (innerWidth <= 480) {
-          CONFIG.BG_CONFETTI_DENSITY = Math.min(CONFIG.BG_CONFETTI_DENSITY, 7);
+        function fireworks(x, y) {
+          // Insere um foguete na simulação (desenhado dentro do loop de partículas)
+          rockets.push({ x, y: innerHeight + 30, vy: -8 - Math.random() * 2, life: 60, color: CONFIG.THEME_COLOR });
         }
-        resizeAll(); setThemeColor(CONFIG.THEME_COLOR); requestAnimationFrame(resetGame); bgLoop();
-      }
-      window.addEventListener('resize', ()=>{ resizeAll(); });
-      firstStart();
 
-      // ====== Tests (opcionais) ======
-      if (CONFIG.RUN_TESTS) {
-        // Teste 1: elementos essenciais
-        console.assert(!!stage && !!cluster, 'TEST: stage/cluster devem existir');
-        // Teste 2: contagem de balões após bootstrap
-        setTimeout(()=>{
-          const balloons = cluster.querySelectorAll('.balloon');
-          console.assert(balloons.length === CONFIG.BALLOON_COUNT, `TEST: devem existir ${CONFIG.BALLOON_COUNT} balões, há ${balloons.length}`);
-          // Teste 3: lógica das letras — nunca revela última letra
-          const N = targetWord.length;
-          const preview = (k)=>{ renderProgress(Math.min(k, N-1)); return progress.textContent.replace(/\s+/g,''); };
-          console.assert(!preview(0).endsWith(targetWord[N-1]), 'TEST: última letra não deve estar revelada no início');
-          console.assert(!preview(N).endsWith(targetWord[N-1]), 'TEST: última letra nunca deve ser revelada');
-          // Teste 4: ordem aleatória tem N-1 posições e não inclui a última
-          initRevealOrder();
-          console.assert(revealOrder.length === Math.max(0, N-1), 'TEST: revealOrder deve conter N-1 índices');
-          console.assert(!revealOrder.includes(N-1), 'TEST: revealOrder não deve conter o índice da última letra');
-        }, 220);
+        function finaleShow() {
+          const w = innerWidth, h = innerHeight;
+          finaleActive = true;
+          // Dispara alguns de início
+          for (let i = 0; i < 5; i++) { spawnBurst(lerp(w * 0.1, w * 0.9, Math.random()), lerp(h * 0.15, h * 0.6, Math.random()), 48, 1.2); }
+          fireworks(w * 0.25, h * 0.75);
+          fireworks(w * 0.5, h * 0.78);
+          fireworks(w * 0.75, h * 0.72);
+          animateParticles();
+          // Loop contínuo até reiniciar
+          if (finaleTimer) clearInterval(finaleTimer);
+          finaleTimer = setInterval(() => {
+            // Explosões aleatórias
+            for (let i = 0; i < 2; i++) {
+              spawnBurst(lerp(w * 0.1, w * 0.9, Math.random()), lerp(h * 0.15, h * 0.6, Math.random()), 36, 1.1);
+            }
+            // Novos fogos
+            fireworks(lerp(w * 0.2, w * 0.8, Math.random()), h * 0.8);
+          }, 1200);
+        }
+
+        async function shareResult() { const text = `Chá de Revelação: ${CONFIG.REVEAL_MESSAGE} — Bem-vindo(a) ${CONFIG.BABY_NAME || ''}`; try { if (navigator.share) { await navigator.share({ title: 'Chá de Revelação', text, url: location.href }); } else { await navigator.clipboard.writeText(`${text} — ${location.href}`); alert('Texto copiado! Cole onde quiser ✨'); } } catch (e) { } }
+
+        // Eventos UI
+        againBtn.addEventListener('click', resetGame);
+        resetBtn.addEventListener('click', resetGame);
+        shareBtn.addEventListener('click', shareResult);
+
+        // Inicialização
+        function resizeAll() { resizeCanvases(); const rect = cluster.getBoundingClientRect(); stringsSvg.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`); stringsSvg.setAttribute('width', rect.width); stringsSvg.setAttribute('height', rect.height); }
+        function firstStart() {
+          // Ajustes leves de performance em telas pequenas
+          if (innerWidth <= 480) {
+            CONFIG.BG_CONFETTI_DENSITY = Math.min(CONFIG.BG_CONFETTI_DENSITY, 7);
+          }
+          resizeAll(); setThemeColor(CONFIG.THEME_COLOR); requestAnimationFrame(resetGame); bgLoop();
+        }
+        window.addEventListener('resize', () => { resizeAll(); });
+        firstStart();
+
+        // ====== Tests (opcionais) ======
+        if (CONFIG.RUN_TESTS) {
+          // Teste 1: elementos essenciais
+          console.assert(!!stage && !!cluster, 'TEST: stage/cluster devem existir');
+          // Teste 2: contagem de balões após bootstrap
+          setTimeout(() => {
+            const balloons = cluster.querySelectorAll('.balloon');
+            console.assert(balloons.length === CONFIG.BALLOON_COUNT, `TEST: devem existir ${CONFIG.BALLOON_COUNT} balões, há ${balloons.length}`);
+            // Teste 3: lógica das letras — nunca revela última letra
+            const N = targetWord.length;
+            const preview = (k) => { renderProgress(Math.min(k, N - 1)); return progress.textContent.replace(/\s+/g, ''); };
+            console.assert(!preview(0).endsWith(targetWord[N - 1]), 'TEST: última letra não deve estar revelada no início');
+            console.assert(!preview(N).endsWith(targetWord[N - 1]), 'TEST: última letra nunca deve ser revelada');
+            // Teste 4: ordem aleatória tem N-1 posições e não inclui a última
+            initRevealOrder();
+            console.assert(revealOrder.length === Math.max(0, N - 1), 'TEST: revealOrder deve conter N-1 índices');
+            console.assert(!revealOrder.includes(N - 1), 'TEST: revealOrder não deve conter o índice da última letra');
+          }, 220);
+
+          // Teste 5: estilo do balão aplica gradiente
+          setTimeout(() => {
+            const b = cluster.querySelector('.balloon');
+            console.assert(b && getComputedStyle(b).backgroundImage.includes('linear-gradient'), 'TEST: balão deve ter gradiente aplicado');
+          }, 260);
+
+          // Teste 6: final revela nome do bebê
+          setTimeout(() => {
+            cluster.querySelectorAll('.balloon').forEach(el => el.click());
+            setTimeout(() => {
+              const shown = reveal.classList.contains('show');
+              console.assert(shown, 'TEST: overlay de revelação deve aparecer ao estourar todos');
+              console.assert((babyNameSpan?.textContent || '') === (CONFIG.BABY_NAME || ''), 'TEST: nome do bebê deve ser exibido corretamente');
+            }, 300);
+          }, 300);
+        }
       }
-    }
-  })();
+    })();
   </script>
 </body>
+
 </html>
