@@ -113,6 +113,13 @@
       opacity: .9;
     }
 
+    /* Esconde as duas contagens de balões (header e flutuante) */
+    .counter,
+    #floatingCounter,
+    .bubble-indicator {
+      display: none !important;
+    }
+
     /* Barra de "jogo da forca" */
     .progress {
       display: flex;
@@ -448,7 +455,7 @@
     <header>
       <div class="title">
         <h1>Estoure todos os balões para descobrir a surpresa! 🎈
-        <div class="subtitle"></div>
+          <div class="subtitle"></div>
       </div>
       <div class="controls">
         <span class="chip counter" id="counter">Faltam —</span>
