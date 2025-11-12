@@ -1,994 +1,841 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Estoure os Balões!</title>
-  <meta name="description" content="Jogo de estourar balões: ao estourar todos, o sexo do bebê é revelado." />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Jogo da Memória 👶</title>
+  <meta name="description"
+    content="Jogo da memória do casal: revele o sexo do bebê apenas na última dupla encontrada." />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <!-- canvas-confetti CDN (opcional; temos fallback nativo) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
   <style>
     :root {
-      --bg: #f3f4f6;
-      /* fundo cinza claro */
-      --ink: #111827;
-      /* texto escuro */
-      --muted: #6b7280;
-      --border: #e5e7eb;
-      --card: #ffffffee;
-      --accent: #ff78b2;
-      /* cor do destaque (pode mudar via URL/CONFIG) */
-      --accent2: #7cc8ff;
-      --balloon-gray-h: 220;
-      /* tom neutro azul-cinza (não muito frio) */
-      --balloon-gray-s: 8%;
-      --balloon-gray-l: 90%;
+      --bg: #0f1220;
+      --card: #14172b;
+      --cardBack: #0f1325;
+      --accent: #ffd166;
+      --ok: #4ade80;
+      --bad: #f87171;
+      --radius: 18px;
+      --shadow: 0 8px 24px rgba(0, 0, 0, .25);
+      --flip-dur: 260ms;
+      --easing: cubic-bezier(.2, .8, .2, 1);
+      --text: #e9edf7;
+      --muted: #94a3b8;
+      --grid-gap: clamp(8px, 2.2vw, 14px);
+      --title-size: clamp(1.2rem, 2.6vw + 1rem, 2rem);
+      --hud-size: clamp(.85rem, 1.2vw + .8rem, 1rem);
+    }
+
+    * {
+      box-sizing: border-box
     }
 
     html,
     body {
-      background: var(--bg);
-      color: var(--ink);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', emoji, sans-serif;
-      overflow: hidden;
-      -webkit-tap-highlight-color: transparent;
-      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-      transition: background .45s ease;
+      height: 100%
     }
 
-    .wrap {
-      display: grid;
-      grid-template-rows: auto auto 1fr auto;
-      min-height: 100dvh;
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial;
+      background: #ffffff;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      overflow-x: hidden;
+      transition: background .4s var(--easing);
     }
 
     header {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      backdrop-filter: blur(8px);
+      background: #fff;
+    }
+
+    .bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      padding: clamp(10px, 2vh, 16px) clamp(14px, 4vw, 24px);
+    }
+
+    .title {
+      font-weight: 700;
+      letter-spacing: .3px;
+      font-size: var(--title-size);
+      color: black;
+    }
+
+    .hud {
+      display: flex;
       gap: 12px;
-      padding: 14px clamp(14px, 4vw, 28px);
-      position: relative;
-      z-index: 3;
-      border-bottom: 1px solid var(--border);
-      background: #fff;
-    }
-
-    header .title {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    h1 {
-      font-size: clamp(20px, 3.2vw, 32px);
-      margin: 0;
-      letter-spacing: .2px;
-      color: var(--ink);
-    }
-
-    .subtitle {
-      font-size: clamp(12px, 1.8vw, 14px);
-      color: var(--muted);
-    }
-
-    .controls {
-      display: flex;
       align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
+      font-size: var(--hud-size);
+      color: black
     }
 
-    .btn,
-    .chip {
-      border: 1px solid var(--border);
+    .hud strong {
+      color: black
+    }
+
+    .btn {
+      appearance: none;
+      border: 0;
+      padding: .6rem .9rem;
       border-radius: 12px;
-      padding: 12px 16px;
-      background: #fff;
-      color: var(--ink);
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform .15s ease, background .2s ease, box-shadow .2s ease;
-      box-shadow: 0 1px 0 #00000006;
-      user-select: none;
-      min-height: 44px;
-      min-width: 44px;
+      background: #606060;
+      color: #e6f0ff;
+      font-weight: 650;
+      box-shadow: var(--shadow);
+      transition: transform .08s var(--easing), filter .2s var(--easing), opacity .2s var(--easing);
       touch-action: manipulation;
     }
 
-    .btn:hover {
-      transform: translateY(-1px);
-      background: #f9fafb;
-    }
-
     .btn:active {
-      transform: translateY(0);
+      transform: translateY(1px) scale(.98)
     }
 
-    .chip {
-      font-size: 13px;
-      background: #f3f4f6;
-      color: #111827;
-    }
-
-    .counter {
-      opacity: .9;
-    }
-
-    /* Esconde as duas contagens de balões (header e flutuante) */
-    .counter,
-    #floatingCounter,
-    .bubble-indicator {
-      display: none !important;
-    }
-
-    /* Barra de "jogo da forca" */
-    .progress {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      justify-content: center;
-      padding: 8px 16px;
-      border-bottom: 1px solid var(--border);
-      background: #fff;
-      position: relative;
-      z-index: 2;
-    }
-
-    .box {
-      width: clamp(28px, 4vw, 40px);
-      height: clamp(36px, 5.2vw, 50px);
-      display: grid;
-      place-items: center;
-      border: 2px solid var(--border);
-      border-radius: 8px;
-      font-weight: 800;
-      font-size: clamp(18px, 3.2vw, 28px);
-      color: var(--ink);
-    }
-
-    .box.empty {
-      color: #9ca3af;
+    .btn.secondary {
+      background: #232842;
+      color: #b8c4e6
     }
 
     main {
-      position: relative;
-      z-index: 1;
-      overflow: hidden;
-    }
-
-    /* Área de cena */
-    .balloon-stage {
-      position: absolute;
-      inset: 0;
-      padding: clamp(12px, 3vw, 24px);
-      overflow: hidden;
-    }
-
-    /* Cluster de balões empilhados */
-    .cluster {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      width: min(560px, 92vw);
-      height: min(560px, 70vh);
-      pointer-events: auto;
-    }
-
-    /* Ponto âncora das cordas (fixo, puxando os balões) */
-    .anchor {
-      position: absolute;
-      left: 50%;
-      bottom: -6px;
-      width: 8px;
-      height: 8px;
-      transform: translateX(-50%);
-      border-radius: 50%;
-      background: #9ca3af;
-      box-shadow: 0 0 0 2px #e5e7eb;
-      z-index: 1;
-      pointer-events: none;
-    }
-
-    /* SVG das cordinhas onduladas */
-    .strings {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      overflow: visible;
-    }
-
-    /* Balão */
-    .balloon {
-      --hue: var(--balloon-gray-h);
-      --sat: var(--balloon-gray-s);
-      --lum: var(--balloon-gray-l);
-      --duration: 3.2s;
-      --delay: 0s;
-      --scale: 1;
-      aspect-ratio: 3/4;
-      border-radius: 50% 50% 45% 45% / 58% 58% 42% 42%;
-      background:
-        radial-gradient(120% 120% at 30% 30%, #ffffff88 0 30%, transparent 40%),
-        radial-gradient(110% 90% at 60% 20%, #ffffff55 0 15%, transparent 26%),
-        linear-gradient(180deg,
-          hsl(var(--hue) var(--sat) calc(var(--lum) + 8%)) 0%,
-          hsl(var(--hue) var(--sat) var(--lum)) 40%,
-          hsl(var(--hue) var(--sat) calc(var(--lum) - 6%)) 100%);
-      box-shadow: 0 10px 18px #00000010, inset 0 4px 10px #ffffffdd;
-      position: absolute;
-      transform: scale(var(--scale));
-      transition: filter .25s ease, transform .25s ease;
-      cursor: pointer;
-      outline: none;
-      /* desativado: vamos animar via JS (drift) */
-      animation: none;
-      pointer-events: auto;
-    }
-
-    .cluster .balloon {
-      will-change: transform;
-    }
-
-    .balloon::after {
-      content: "";
-      position: absolute;
-      bottom: -8px;
-      left: 50%;
-      width: 14px;
-      height: 10px;
-      background: var(--neckColor, hsl(var(--hue) var(--sat) calc(var(--lum) - 8%)));
-      transform: translateX(-50%) rotate(45deg);
-      border-radius: 2px;
-      box-shadow: 0 1px 0 #00000015;
-    }
-
-    /* escondemos a pseudo-corda (usamos SVG) */
-    .balloon[data-string="1"]::before {
-      display: none;
-    }
-
-    .balloon:focus-visible {
-      box-shadow: 0 0 0 3px #00000010, 0 10px 18px #00000010;
-    }
-
-    .balloon:hover {
-      filter: brightness(1.03) saturate(1.02);
-    }
-
-    /* Efeito ao estourar */
-    .balloon.popped {
-      animation: pop .45s ease forwards;
-      pointer-events: none;
-    }
-
-    @keyframes pop {
-      0% {
-        transform: translateY(0) scale(var(--scale));
-        filter: saturate(1);
-        opacity: 1;
-      }
-
-      40% {
-        transform: translateY(-6px) scale(calc(var(--scale)*1.12));
-        filter: saturate(1.1);
-      }
-
-      100% {
-        transform: translateY(0) scale(0);
-        opacity: 0;
-      }
-    }
-
-    /* Overlay de revelação (leve no branco) */
-    .reveal {
-      position: absolute;
-      inset: 0;
+      padding: clamp(10px, 2.5vh, 20px) clamp(12px, 4vw, 24px) max(env(safe-area-inset-bottom, 16px), 16px);
       display: grid;
-      place-items: center;
-      padding: 24px;
-      text-align: center;
-      background: var(--accent);
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity .45s ease, visibility .45s ease;
-      z-index: 4;
+      gap: clamp(14px, 2.5vh, 18px);
+      transition: filter .3s var(--easing), opacity .3s var(--easing);
     }
 
-    .reveal.show {
-      opacity: 1;
-      visibility: visible;
+    body.reveal-mode main {
+      filter: blur(3px);
+      opacity: .2;
+      pointer-events: none;
+    }
+
+    .grid {
+      --cols: 3;
+      display: grid;
+      grid-template-columns: repeat(var(--cols), 1fr);
+      gap: var(--grid-gap);
+      margin: 0 auto;
+      width: 100%;
+      max-width: min(540px, 96vw);
+    }
+
+    @media (min-width: 420px) {
+      .grid {
+        --cols: 4
+      }
+
+      .reveal-text {
+        width: min(420px, 96vw);
+      }
+    }
+
+    @media (min-width: 720px) {
+      .grid {
+        --cols: 4;
+        max-width: 640px
+      }
     }
 
     .card {
-      max-width: 900px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: clamp(20px, 4vw, 42px);
-      box-shadow: 0 20px 50px #00000010, inset 0 1px 0 #ffffff;
+      position: relative;
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      perspective: 1000px;
+      user-select: none;
     }
 
-    .msg {
-      font-size: clamp(28px, 6vw, 86px);
+    .card button {
+      all: unset;
+      display: block;
+      position: absolute;
+      inset: 0;
+      cursor: pointer;
+      border-radius: var(--radius);
+      outline: none;
+    }
+
+    .card .inner {
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+      transition: transform var(--flip-dur) var(--easing);
+      will-change: transform;
+      transform: translateZ(0);
+    }
+
+    .card.flipped .inner {
+      transform: rotateY(180deg);
+    }
+
+    .face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, .06);
+    }
+
+    .front {
+      transform: rotateY(180deg);
+    }
+
+    .front img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      opacity: 0;
+      transition: opacity .25s var(--easing);
+    }
+
+    .front img.loaded {
+      opacity: 1
+    }
+
+    .back {
+      background:
+        radial-gradient(120px 120px at 20% 15%, #1f284c 0%, transparent 60%),
+        radial-gradient(150px 100px at 80% 85%, #222b56 0%, transparent 60%),
+        var(--cardBack);
+      display: grid;
+      place-items: center;
+      position: relative;
+      isolation: isolate;
+      height: 100%;
+    }
+
+    .back::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, .06) 25%, transparent 25%) -8px 0/16px 16px,
+        linear-gradient(225deg, rgba(255, 255, 255, .06) 25%, transparent 25%) -8px 0/16px 16px,
+        linear-gradient(315deg, rgba(255, 255, 255, .06) 25%, transparent 25%) 0px 0/16px 16px,
+        linear-gradient(45deg, rgba(255, 255, 255, .06) 25%, transparent 25%) 0px 0/16px 16px;
+      opacity: .4;
+      mix-blend-mode: overlay;
+    }
+
+    .qmark {
+      font-size: clamp(1.6rem, 6vw, 2.4rem);
+      font-weight: 800;
+      color: #cbd5e1;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, .35);
+      transform: translateZ(0);
+    }
+
+    .skeleton {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(110deg, rgba(255, 255, 255, .05) 25%, rgba(255, 255, 255, .12) 35%, rgba(255, 255, 255, .05) 45%) 0 0/200% 100%,
+        #1a2140;
+      animation: shine 1.1s linear infinite;
+      z-index: 0;
+    }
+
+    @keyframes shine {
+      to {
+        background-position: -200% 0
+      }
+    }
+
+    /* Overlays (suspense e revelação) */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: clamp(16px, 4vw, 28px);
+      color: #0b1220;
+      z-index: 4;
+    }
+
+    .overlay.show {
+      display: grid;
+    }
+
+    /* Suspense */
+    #suspense {
+      background: rgba(0, 0, 0, .5);
+      color: #fff;
+      text-align: center;
+      backdrop-filter: blur(6px);
+    }
+
+    .countdown {
+      font-size: clamp(2.2rem, 10vw, 4rem);
       font-weight: 900;
-      margin: 0 0 10px;
-      line-height: 1.02;
-      letter-spacing: .8px;
-      color: var(--accent);
+      letter-spacing: .5px;
+      margin-top: .25rem;
     }
 
-    .submsg {
-      font-size: clamp(14px, 2.2vw, 20px);
-      color: #374151;
-      margin-bottom: 18px;
+    .suspense-title {
+      font-size: clamp(1.2rem, 5vw, 2rem);
+      font-weight: 800;
+    }
+
+    /* Revelação */
+    .reveal-card {
+      border-radius: 24px;
+      padding: clamp(18px, 4vw, 32px);
+      background: rgba(255, 255, 255, .86);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 16px 50px rgba(0, 0, 0, .25);
+      text-align: center;
+      animation: pop .6s var(--easing);
+    }
+
+    @keyframes pop {
+      from {
+        transform: scale(.9);
+        opacity: 0
+      }
+    }
+
+    .reveal-title {
+      font-size: clamp(1.8rem, 6vw, 3rem);
+      font-weight: 900;
+      letter-spacing: .6px;
+      animation: bounce 1.2s var(--easing) infinite alternate;
+      color: #ff7fbf;
+    }
+
+    @keyframes bounce {
+      from {
+        transform: translateY(0)
+      }
+
+      to {
+        transform: translateY(-6px)
+      }
     }
 
     .baby-name {
-      font-size: clamp(22px, 5.8vw, 68px);
-      font-weight: 900;
-      margin: 10px 0 18px;
-      line-height: 1.05;
-      letter-spacing: .6px;
-      color: var(--ink);
+      margin-top: .25rem;
+      font-weight: 800;
+      font-size: clamp(1.3rem, 4.8vw, 2.2rem);
     }
 
-    .actions {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
+    .reveal-text {
+      color: #0e1528;
+      line-height: 1.4;
+      text-wrap: pretty;
+      font-size: clamp(.95rem, 2.6vw, 1.05rem);
+      white-space: pre-line;
     }
 
-    /* Canvas: confete de fundo + confete/fogos do final */
-    canvas#bgConfetti {
+    .reveal-welcome {
+      margin: .6rem 0 1rem;
+      font-weight: 800;
+    }
+
+    .screen-reader {
       position: absolute;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    canvas#confetti {
-      position: absolute;
-      inset: 0;
-      z-index: 5;
-      pointer-events: none;
-    }
-
-    /* Indicador de "Faltam X balões" no canto */
-    .bubble-indicator {
-      position: fixed;
-      bottom: 16px;
-      right: 16px;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 10px 14px;
-      box-shadow: 0 8px 24px #0000000f, inset 0 1px 0 #ffffff;
-      z-index: 2;
-      font-weight: 700;
-      color: #111827;
-    }
-
-    @media (max-width: 768px) {
-      header {
-        padding: 12px 16px;
-      }
-
-      h1 {
-        font-size: clamp(18px, 4.2vw, 26px);
-      }
-
-      .subtitle {
-        font-size: clamp(12px, 2.4vw, 13px);
-      }
-
-      .progress {
-        gap: 6px;
-        padding: 8px 10px;
-      }
-
-      .box {
-        width: clamp(26px, 5.5vw, 36px);
-        height: clamp(34px, 7vw, 46px);
-        font-size: clamp(16px, 3.6vw, 24px);
-      }
-
-      .cluster {
-        width: 94vw;
-        height: 62vh;
-      }
-
-      .bubble-indicator {
-        bottom: calc(14px + env(safe-area-inset-bottom));
-        right: 14px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      header {
-        padding: 10px 12px;
-      }
-
-      h1 {
-        font-size: clamp(16px, 5.2vw, 22px);
-      }
-
-      .controls {
-        gap: 8px;
-      }
-
-      .btn,
-      .chip {
-        padding: 12px 14px;
-        font-size: 15px;
-        border-radius: 14px;
-      }
-
-      .progress {
-        gap: 6px;
-        padding: 8px 8px;
-      }
-
-      .box {
-        width: 30px;
-        height: 40px;
-        font-size: 18px;
-        border-radius: 6px;
-      }
-
-      .cluster {
-        width: 96vw;
-        height: 58vh;
-      }
-
-      .bubble-indicator {
-        bottom: calc(12px + env(safe-area-inset-bottom));
-        right: 12px;
-      }
+      left: -9999px;
+      top: auto;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
     }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
-    <header>
-      <div class="title">
-        <h1>Estoure todos os balões para descobrir a surpresa! 🎈
-          <div class="subtitle"></div>
+  <header>
+    <div class="bar">
+      <div class="title">Jogo da Memória</div>
+      <div class="hud" aria-live="polite">
+        <div>Jogadas: <strong id="moves">0</strong></div>
+        <div>Tempo: <strong id="time">00:00</strong></div>
       </div>
-      <div class="controls">
-        <span class="chip counter" id="counter">Faltam —</span>
-        <button class="btn" id="resetBtn" type="button" aria-label="Reiniciar">Reiniciar</button>
-      </div>
-    </header>
+      <button id="restartTop" class="btn secondary" type="button" aria-label="Reiniciar o jogo">Reiniciar</button>
+    </div>
+  </header>
 
-    <!-- Jogo da forca (letras) -->
-    <div class="progress" id="progress" aria-live="polite"></div>
+  <main>
+    <section aria-label="Tabuleiro do jogo" class="grid" id="grid" role="grid"></section>
+  </main>
 
-    <main>
-      <div class="balloon-stage" id="stage" aria-live="polite" aria-label="Tabuleiro de balões">
-        <div id="cluster" class="cluster" aria-hidden="true">
-          <svg id="strings" class="strings" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
-          <div id="anchor" class="anchor" aria-hidden="true"></div>
-        </div>
-      </div>
-      <canvas id="bgConfetti"></canvas>
-      <canvas id="confetti"></canvas>
-
-      <div class="reveal" id="reveal" role="dialog" aria-modal="true" aria-labelledby="msg">
-        <div class="card">
-          <h2 class="msg" id="msg">É MENINO!</h2>
-          <p class="submsg" id="submsg">Parabéns, família! Que venha com muita saúde. 💙</p>
-          <div class="baby-name" id="babyNameLine"><span id="babyName">Seja bem vinda, Tália</span>!!!</div>
-          <div class="actions">
-            <button class="btn" id="againBtn" type="button">Jogar de novo</button>
-            <button class="btn" id="shareBtn" type="button">Compartilhar</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="bubble-indicator" id="floatingCounter" aria-hidden="true">—</div>
-    </main>
+  <!-- Overlay de SUSPENSE -->
+  <div id="suspense" class="overlay" aria-hidden="true">
+    <div class="reveal-card" style="background:rgba(0,0,0,.35); color:#fff;">
+      <div class="suspense-title">Segura o coração... 💖</div>
+      <div>Revelação em</div>
+      <div id="countdown" class="countdown">5</div>
+    </div>
   </div>
 
-  <script>
-    (function () {
-      /** ======== CONFIG ======== */
-      const CONFIG = {
-        BALLOON_COUNT: 10,
-        REVEAL_MESSAGE: 'É MENINA! 🎀',
-        // REVEAL_MESSAGE: 'É MENINO! 💙',
-        REVEAL_SUB: `A família aumentou e um novo amor surgiu, o primeiro olhar, a primeira palavra, os primeiros passos estão prestes a acontecer e muitas coisas novas ainda virão nessa longa caminhada... Deus vai guiar cada passo e vai abençoar cada nova descoberta! A Mamãe e o Papai, felizes, anunciam para toda a família, a sua chegada!`,
-        BABY_NAME: 'Seja bem vinda, Tália',
-        // BABY_NAME: 'Seja bem vindo, Romeu',
-        THEME_COLOR: '#ff78b2', // se for menina
-        // THEME_COLOR: '#1e90ff', // azul se for menino
+  <!-- Overlay de REVELAÇÃO -->
+  <div id="overlay" class="overlay" aria-modal="true" role="dialog" aria-label="Revelação do sexo do bebê">
+    <div class="reveal-card">
+      <h2 id="revealTitle" class="reveal-title">É MENINA!</h2>
+      <div id="babyName" class="baby-name">Sejá bem vinda, Tália!!!🎀</div>
+      <p class="reveal-text" id="revealText"></p>
+      <p class="reveal-welcome" id="revealWelcome"></p>
+      <button id="playAgain" class="btn" type="button">Jogar de novo</button>
+    </div>
+  </div>
 
-        SECONDARY_COLOR: '#7cc8ff',
-        RANDOMIZE_COLORS: true, // usar paleta abaixo nas cores dos balões
-        USE_URL_PARAMS: true,
-        STRING_RATIO: 1,
-        RUN_TESTS: false,
-        // confete de fundo (queda sutil)
-        BG_CONFETTI_OPACITY: 0.5,   // opacidade dos quadradinhos
-        BG_CONFETTI_DENSITY: 10,    // densidade de spawn (cuidado: valores altos pesam)
-        BG_CONFETTI_SIZE: [2, 4],   // faixa de tamanho em px
-        BG_CONFETTI_SPEED: [18, 36], // pixels/segundo
-        BG_CONFETTI_COLORS: ['#ff78b2', '#7cc8ff', '#ffd166', '#7ae582', '#a78bfa', '#f472b6', '#60a5fa'],
-        // paleta para os balões (iguais às cores dos confetes)
-        PALETTE: ['#ff78b2', '#7cc8ff', '#ffd166', '#7ae582', '#a78bfa', '#f472b6', '#60a5fa'],
-        BASE_COLOR: '#F5F5F5'
+  <!-- Canvas de efeitos (no topo de tudo) -->
+  <canvas id="fxCanvas"
+    style="position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:9999;"></canvas>
+
+  <!-- Aria-live invisível -->
+  <div id="ariaLive" class="screen-reader" aria-live="polite"></div>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      // ===========================
+      // CONFIGURAÇÃO DO JOGO
+      // ===========================
+      const GAME_CONFIG = {
+        pairs: 6,
+        revealGender: "girl", // "girl" | "boy"
+        imagesPath: "./public/img/casal/",
+        girlColor: "#ffc0e0",
+        boyColor: "#8ec5ff"
       };
 
-      // Aguarda DOM pronto
-      window.addEventListener('DOMContentLoaded', boot);
+      const REVEAL_MESSAGE = `A família aumentou e um novo amor surgiu, o primeiro olhar, a primeira palavra, os primeiros passos estão prestes a acontecer e muitas coisas novas ainda virão nessa longa caminhada... Deus vai guiar cada passo e vai abençoar cada nova descoberta! A Mamãe e o Papai, felizes, anunciam para toda a família, a sua chegada!`;
 
-      function boot() {
-        // Refs
-        const stage = document.getElementById('stage');
-        const cluster = document.getElementById('cluster');
-        const stringsSvg = document.getElementById('strings');
-        const counter = document.getElementById('counter');
-        const floatingCounter = document.getElementById('floatingCounter');
-        const reveal = document.getElementById('reveal');
-        const msgEl = document.getElementById('msg');
-        const subEl = document.getElementById('submsg');
-        const babyNameSpan = document.getElementById('babyName');
-        const againBtn = document.getElementById('againBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const shareBtn = document.getElementById('shareBtn');
-        const progress = document.getElementById('progress');
-        const bgCanvas = document.getElementById('bgConfetti');
-        const bgCtx = bgCanvas.getContext('2d');
-        const confettiCanvas = document.getElementById('confetti');
-        const ctx = confettiCanvas.getContext('2d');
+      // ===========================
+      // ESTADO
+      // ===========================
+      let state = {
+        deck: [],
+        firstCard: null,
+        secondCard: null,
+        lockBoard: false,
+        matchedPairs: 0,
+        moves: 0,
+        startedAt: null,
+        timerId: null,
+        remainingPairsForReveal: () => (GAME_CONFIG.pairs - state.matchedPairs)
+      };
 
-        if (!stage || !cluster) { console.error('[Erro] Elementos essenciais não encontrados'); return; }
+      // DOM refs
+      const grid = document.getElementById('grid');
+      const movesA = document.getElementById('moves');
+      const timeA = document.getElementById('time');
+      const restartTop = document.getElementById('restartTop');
 
-        // Utils
-        const lerp = (a, b, t) => a + (b - a) * t;
-        const rand = (min, max) => Math.random() * (max - min) + min;
-        const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
-        // util: cor
-        const hexToRgb = (hex) => { const m = /^#?([0-9a-f]{6}|[0-9a-f]{3})$/i.exec(hex); if (!m) return { r: 240, g: 240, b: 240 }; let h = m[1]; if (h.length === 3) h = h.split('').map(x => x + x).join(''); const num = parseInt(h, 16); return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 }; };
-        const rgbToHex = (r, g, b) => '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
-        const shade = (hex, p) => {
-          const { r, g, b } = hexToRgb(hex); const t = p >= 0 ? 255 : 0; const f = Math.abs(p); return rgbToHex(
-            Math.round(r + (t - r) * f), Math.round(g + (t - g) * f), Math.round(b + (t - b) * f)
-          );
-        };
-        const gradientFor = (base) => {
-          const light = shade(base, 0.15); // +15%
-          const dark = shade(base, -0.12); // -12%
-          return `radial-gradient(120% 120% at 30% 30%, #ffffff88 0 30%, transparent 40%),`
-            + `radial-gradient(110% 90% at 60% 20%, #ffffff55 0 15%, transparent 26%),`
-            + `linear-gradient(180deg, ${light} 0%, ${base} 40%, ${dark} 100%)`;
-        };
+      const suspenseLayer = document.getElementById('suspense');
+      const countdownEl = document.getElementById('countdown');
 
-        // Estado
-        let total = CONFIG.BALLOON_COUNT; let remaining = total;
-        let particles = []; let rafId = null;
-        // Fogos contínuos no finale
-        let rockets = [];
-        let finaleActive = false;
-        let finaleTimer = null;
-        let stringMap = new WeakMap(); // balão -> path
-        let driftMap = new WeakMap(); // balão -> drift meta
-        let driftRaf = null;           // frame de drift
+      const overlay = document.getElementById('overlay');
+      const revealTitle = document.getElementById('revealTitle');
+      const babyName = document.getElementById('babyName');
+      const revealText = document.getElementById('revealText');
+      const revealWelcome = document.getElementById('revealWelcome');
+      const playAgain = document.getElementById('playAgain');
+      const ariaLive = document.getElementById('ariaLive');
+      const fxCanvas = document.getElementById('fxCanvas');
 
-        // alvo da forca (MENINO/MENINA ou custom)
-        let targetWord = 'MENINA';
-        // ordem aleatória de revelação (exclui a última letra)
-        let revealOrder = [];
-
-        // ===== Tema e parâmetros via URL =====
-        try {
-          if (CONFIG.USE_URL_PARAMS) {
-            const url = new URL(location.href);
-            const sexo = (url.searchParams.get('sexo') || '').toLowerCase();
-            const cor = url.searchParams.get('cor');
-            const msg = url.searchParams.get('msg');
-            const nome = url.searchParams.get('nome') || url.searchParams.get('name');
-            if (nome) CONFIG.BABY_NAME = decodeURIComponent(nome);
-            if (sexo === 'menino') { CONFIG.REVEAL_MESSAGE = 'É MENINO! 💙'; if (subEl) subEl.textContent = 'Parabéns! Que venha com muita saúde.'; CONFIG.THEME_COLOR = '#1e90ff'; targetWord = 'MENINO'; }
-            else if (sexo === 'menina') { CONFIG.REVEAL_MESSAGE = 'É MENINA! 🎀'; if (subEl) subEl.textContent = 'Parabéns! Que venha com muita saúde.'; CONFIG.THEME_COLOR = '#ff78b2'; targetWord = 'MENINA'; }
-            if (typeof cor === 'string' && /^#([0-9a-f]{3}){1,2}$/i.test(cor)) CONFIG.THEME_COLOR = cor;
-            if (msg) CONFIG.REVEAL_MESSAGE = decodeURIComponent(msg);
-          }
-        } catch (e) { }
-
-        // Se a mensagem contiver MENINO/MENINA, sincroniza
-        if (/MENINO/i.test(CONFIG.REVEAL_MESSAGE)) targetWord = 'MENINO';
-        if (/MENINA/i.test(CONFIG.REVEAL_MESSAGE)) targetWord = 'MENINA';
-
-        function setThemeColor(hex) { document.documentElement.style.setProperty('--accent', hex); }
-
-        // ===== Forca (UI) — letras aleatórias, com controle da última letra
-        function renderProgress(lettersShown = 0, revealLast = false) {
-          progress.innerHTML = '';
-          const N = targetWord.length;
-
-          // garante ordem inicializada
-          if (!revealOrder || revealOrder.length !== Math.max(0, N - 1)) initRevealOrder();
-
-          // mostra no máx. N-1 letras pelos balões; a última depende de revealLast
-          const shown = Math.min(lettersShown, Math.max(0, N - 1));
-          const revealedSet = new Set(revealOrder.slice(0, shown));
-
-          for (let i = 0; i < N; i++) {
-            const box = document.createElement('div');
-            const isLast = (i === N - 1);
-            const shouldReveal = isLast ? revealLast : revealedSet.has(i);
-
-            box.className = 'box' + (shouldReveal ? '' : ' empty');
-            box.textContent = shouldReveal ? targetWord[i] : '_';
-            progress.appendChild(box);
+      // ===========================
+      // CONFETTI: FALLBACK NATIVO
+      // ===========================
+      class NativeConfettiEngine {
+        constructor(canvas) {
+          this.canvas = canvas;
+          this.ctx = canvas.getContext('2d');
+          this.dpr = window.devicePixelRatio || 1;
+          this.particles = [];
+          this.running = false;
+          this.last = performance.now();
+          this.resize();
+        }
+        resize() {
+          const w = Math.floor(window.innerWidth * this.dpr);
+          const h = Math.floor(window.innerHeight * this.dpr);
+          if (this.canvas.width !== w || this.canvas.height !== h) {
+            this.canvas.width = w; this.canvas.height = h;
           }
         }
-
-
-        function lettersToShow() {
-          const N = targetWord.length;
-          const popped = total - remaining;
-          const extra = Math.max(0, popped - (total - N)); // 0..N
-          return Math.min(N - 1, extra); // nunca revela a última letra
-        }
-
-        function shuffle(arr) {
-          for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[arr[i], arr[j]] = [arr[j], arr[i]]; }
-          return arr;
-        }
-        function initRevealOrder() {
-          const N = targetWord.length;
-          const base = Array.from({ length: Math.max(0, N - 1) }, (_, i) => i); // 0..N-2
-          revealOrder = shuffle(base);
-        }
-
-        // ===== Balões e cordas =====
-        function ensureAnchor() { let a = document.getElementById('anchor'); if (!a) { a = document.createElement('div'); a.id = 'anchor'; a.className = 'anchor'; cluster.appendChild(a); } return a; }
-        function ensureStringsSvg() { let svg = document.getElementById('strings'); if (!svg) { svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('id', 'strings'); svg.setAttribute('class', 'strings'); cluster.prepend(svg); } const rect = cluster.getBoundingClientRect(); svg.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`); svg.setAttribute('width', rect.width); svg.setAttribute('height', rect.height); while (svg.firstChild) svg.removeChild(svg.firstChild); return svg; }
-
-        function createWavyPath(sx, sy, ex, ey) {
-          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-          const dx = ex - sx, dy = ey - sy;
-          const len = Math.hypot(dx, dy) || 1;
-          const segs = Math.max(4, Math.round(len / 60));
-          const amplitude = Math.min(16, Math.max(6, len / 20));
-          const ux = dx / len, uy = dy / len; const px = -uy, py = ux;
-          let d = `M ${sx} ${sy}`;
-          for (let i = 1; i <= segs; i++) {
-            const t0 = (i - 1) / segs, t1 = i / segs;
-            const mx0 = sx + dx * t0, my0 = sy + dy * t0; const mx1 = sx + dx * t1, my1 = sy + dy * t1;
-            const midx = (mx0 + mx1) / 2, midy = (my0 + my1) / 2; const dir = (i % 2 === 0) ? 1 : -1;
-            const cx = midx + px * amplitude * dir, cy = midy + py * amplitude * dir; d += ` Q ${cx} ${cy} ${mx1} ${my1}`;
-          }
-          path.setAttribute('d', d);
-          path.setAttribute('fill', 'none');
-          path.setAttribute('stroke', '#9ca3af');
-          path.setAttribute('stroke-opacity', '0.8');
-          path.setAttribute('stroke-width', '2');
-          path.setAttribute('vector-effect', 'non-scaling-stroke');
-          path.setAttribute('stroke-linecap', 'round');
-          path.setAttribute('stroke-linejoin', 'round');
-          return path;
-        }
-
-        function createBalloon(scale, delay, duration) {
-          const b = document.createElement('button');
-          b.className = 'balloon';
-          b.setAttribute('aria-label', 'Balão — clique para estourar');
-          b.style.setProperty('--scale', scale);
-          b.style.setProperty('--delay', `${delay.toFixed(2)}s`);
-          b.style.setProperty('--duration', `${duration.toFixed(2)}s`);
-          if (Math.random() < (CONFIG.STRING_RATIO ?? 1)) b.setAttribute('data-string', '1');
-          b.addEventListener('click', () => popBalloon(b));
-          b.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); popBalloon(b); } });
-          return b;
-        }
-
-        function updateCounters() {
-          const text = remaining > 0 ? `Faltam ${remaining} balão${remaining === 1 ? '' : 'es'}` : 'Todos estourados!';
-          counter.textContent = text;
-          floatingCounter.textContent = text;
-
-          // mostra a última letra somente quando todos os balões forem estourados
-          renderProgress(lettersToShow(), remaining === 0);
-        }
-
-        function popBalloon(b) {
-          if (b.classList.contains('popped')) return;
-          const line = stringMap.get(b); if (line && line.parentNode) line.parentNode.removeChild(line); stringMap.delete(b);
-          driftMap.delete(b);
-          b.style.removeProperty('animation');
-          b.classList.add('popped'); remaining--; updateCounters();
-          spawnBurstAtElement(b, 14);
-          if (remaining <= 0) revealFinal();
-        }
-
-        function revealFinal() {
-          // força exibir a última letra no momento do resultado
-          renderProgress(targetWord.length, true);
-
-          msgEl.textContent = CONFIG.REVEAL_MESSAGE;
-          subEl.textContent = CONFIG.REVEAL_SUB;
-          setThemeColor(CONFIG.THEME_COLOR);
-          // muda o fundo para a cor do resultado (rosa/azul)
-          document.documentElement.style.setProperty('--bg', CONFIG.THEME_COLOR);
-          document.body.style.background = CONFIG.THEME_COLOR;
-
-          reveal.classList.add('show');
-          finaleShow();
-        }
-
-
-        function resetGame() {
-          document.documentElement.style.setProperty('--bg', '#f3f4f6');
-          document.body.style.background = 'var(--bg)';
-          cluster.innerHTML = '';
-          const svg = ensureStringsSvg();
-          const anchor = ensureAnchor();
-
-          reveal.classList.remove('show');
-          // encerra show contínuo (se ativo)
-          finaleActive = false;
-          if (finaleTimer) { clearInterval(finaleTimer); finaleTimer = null; }
-          rockets = [];
-          total = CONFIG.BALLOON_COUNT; remaining = total; particles = []; cancelAnimationFrame(rafId); rafId = null;
-          stringMap = new WeakMap(); driftMap = new WeakMap();
-          // reinicia ordem aleatória de letras
-          initRevealOrder();
-          resizeCanvases();
-
-          const clusterRect = cluster.getBoundingClientRect();
-          const anchorRect = anchor.getBoundingClientRect();
-          const stageRect = stage.getBoundingClientRect();
-          if ((clusterRect.width < 10 || clusterRect.height < 10) && (stageRect.width > 0 && stageRect.height > 0)) { requestAnimationFrame(resetGame); return; }
-
-          // Cria balões
-          for (let i = 0; i < total; i++) {
-            const scale = rand(0.9, 1.15), delay = rand(0, 1.0), duration = rand(2.4, 3.2);
-            const balloon = createBalloon(scale, delay, duration);
-
-            // aplicar cores dos confetes (ou BASE_COLOR quando desativado)
-            let base = CONFIG.BASE_COLOR;
-            if (CONFIG.RANDOMIZE_COLORS && Array.isArray(CONFIG.PALETTE) && CONFIG.PALETTE.length > 0) {
-              base = CONFIG.PALETTE[Math.floor(Math.random() * CONFIG.PALETTE.length)];
-            }
-            balloon.style.background = gradientFor(base);
-            const neck = shade(base, -0.12);
-            balloon.style.setProperty('--neckColor', neck);
-
-            const R = Math.min(clusterRect.width, clusterRect.height) / 2 - 20;
-            const t = Math.random();
-            const r = Math.sqrt(t) * R;
-            const ang = rand(0, Math.PI * 2);
-            const cx = clusterRect.width / 2, cy = clusterRect.height / 2;
-            const x = cx + r * Math.cos(ang);
-            const y = cy + r * Math.sin(ang);
-
-            const w = Math.min(clusterRect.width, 120) * (0.6 + 0.4 * Math.random());
-            const h = w * 4 / 3;
-            balloon.style.width = w + 'px';
-            balloon.style.left = (x - w / 2) + 'px';
-            balloon.style.top = (y - h / 2) + 'px';
-            balloon.style.zIndex = String(1000 + Math.floor(y));
-
-            // corda
-            const ax = anchorRect.left + anchorRect.width / 2 - clusterRect.left;
-            const ay = anchorRect.top + anchorRect.height / 2 - clusterRect.top;
-            const sx = x; const sy = (y - h / 2) + h + 6;
-            const path = createWavyPath(sx, sy, ax, ay);
-            svg.appendChild(path); stringMap.set(balloon, path);
-
-            // drift
-            const drift = {
-              baseX: x, baseY: y, w, h,
-              ampX: rand(10, 28), spdX: rand(0.4, 0.9), phX: rand(0, Math.PI * 2),
-              ampY: rand(6, 14), spdY: rand(0.2, 0.6), phY: rand(0, Math.PI * 2)
-            };
-            driftMap.set(balloon, drift);
-
-            cluster.appendChild(balloon);
-          }
-
-          // inicia drift
-          startDrift();
-          updateCounters();
-        }
-
-        function startDrift() {
-          if (driftRaf) cancelAnimationFrame(driftRaf);
-          const start = performance.now();
-          function loop(now) {
-            const t = (now - start) / 1000;
-            const clRect = cluster.getBoundingClientRect();
-            const anRect = document.getElementById('anchor').getBoundingClientRect();
-            const ax = anRect.left + anRect.width / 2 - clRect.left;
-            const ay = anRect.top + anRect.height / 2 - clRect.top;
-            cluster.querySelectorAll('.balloon:not(.popped)').forEach(b => {
-              const d = driftMap.get(b); if (!d) return;
-              const nx = d.baseX + d.ampX * Math.sin(t * d.spdX + d.phX);
-              const ny = d.baseY + d.ampY * Math.sin(t * d.spdY + d.phY);
-              b.style.left = (nx - d.w / 2) + 'px';
-              b.style.top = (ny - d.h / 2) + 'px';
-              const path = stringMap.get(b);
-              if (path) {
-                const sx = nx; const sy = (ny - d.h / 2) + d.h + 6;
-                path.setAttribute('d', createPathD(sx, sy, ax, ay));
-              }
+        spawnBurst(opts) {
+          const {
+            particleCount = 40, startVelocity = 35, spread = 360,
+            origin = { x: Math.random(), y: Math.random() * 0.4 },
+            colors = ["#ffffff", "#ffd166", "#9b5de5", "#00bbf9"],
+            scalar = 1
+          } = opts || {};
+          const angleBase = (opts.angle ?? 90) * Math.PI / 180;
+          for (let i = 0; i < particleCount; i++) {
+            const t = (Math.random() - 0.5) * (spread * Math.PI / 180);
+            const a = angleBase + t;
+            const sp = startVelocity * (0.5 + Math.random() * 0.8);
+            const sx = (origin.x * this.canvas.width);
+            const sy = (origin.y * this.canvas.height);
+            this.particles.push({
+              x: sx, y: sy,
+              vx: Math.cos(a) * sp,
+              vy: Math.sin(a) * sp,
+              g: 0.25 * this.dpr,
+              life: 60 + Math.random() * 40,
+              size: (3 + Math.random() * 4) * scalar * this.dpr,
+              color: colors[Math.floor(Math.random() * colors.length)],
+              rot: Math.random() * Math.PI,
+              vr: (Math.random() - 0.5) * 0.2
             });
-            driftRaf = requestAnimationFrame(loop);
           }
-          driftRaf = requestAnimationFrame(loop);
+          if (!this.running) this.loop();
         }
+        loop() {
+          this.running = true;
+          const now = performance.now();
+          const dt = Math.min(32, now - this.last) / 16.67; // ~frames
+          this.last = now;
 
-        // gera apenas o atributo 'd' (mesma lógica do createWavyPath)
-        function createPathD(sx, sy, ex, ey) {
-          const dx = ex - sx, dy = ey - sy; const len = Math.hypot(dx, dy) || 1;
-          const segs = Math.max(4, Math.round(len / 60));
-          const amplitude = Math.min(16, Math.max(6, len / 20));
-          const ux = dx / len, uy = dy / len; const px = -uy, py = ux;
-          let d = `M ${sx} ${sy}`;
-          for (let i = 1; i <= segs; i++) {
-            const t0 = (i - 1) / segs, t1 = i / segs; const mx0 = sx + dx * t0, my0 = sy + dy * t0; const mx1 = sx + dx * t1, my1 = sy + dy * t1; const midx = (mx0 + mx1) / 2, midy = (my0 + my1) / 2; const dir = (i % 2 === 0) ? 1 : -1; const cx = midx + px * amplitude * dir, cy = midy + py * amplitude * dir; d += ` Q ${cx} ${cy} ${mx1} ${my1}`;
-          }
-          return d;
-        }
+          const { ctx, canvas } = this;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // ===== Confetes (fundo sutil) =====
-        let bgPieces = []; let bgRaf = null;
-        function resizeCanvases() { bgCanvas.width = innerWidth; bgCanvas.height = innerHeight; confettiCanvas.width = innerWidth; confettiCanvas.height = innerHeight; }
-        function spawnBgPiece() {
-          const size = rand(CONFIG.BG_CONFETTI_SIZE[0], CONFIG.BG_CONFETTI_SIZE[1]);
-          const x = rand(-20, innerWidth + 20); const y = -10; const speed = rand(CONFIG.BG_CONFETTI_SPEED[0], CONFIG.BG_CONFETTI_SPEED[1]); const drift = rand(-10, 10);
-          const colorPool = (Array.isArray(CONFIG.BG_CONFETTI_COLORS) && CONFIG.BG_CONFETTI_COLORS.length > 0 ? CONFIG.BG_CONFETTI_COLORS : [CONFIG.THEME_COLOR, CONFIG.SECONDARY_COLOR]);
-          bgPieces.push({ x, y, size, speed, drift, rot: rand(0, Math.PI * 2), spin: rand(-0.03, 0.03), alpha: CONFIG.BG_CONFETTI_OPACITY, color: colorPool[Math.floor(Math.random() * colorPool.length)] });
-        }
-        function bgLoop() {
-          bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
-          // spawn rate
-          if (Math.random() < 0.015 * CONFIG.BG_CONFETTI_DENSITY) spawnBgPiece();
-          bgPieces = bgPieces.filter(p => p.y < innerHeight + 12);
-          for (const p of bgPieces) { p.y += p.speed / 60; p.x += p.drift / 240; p.rot += p.spin; bgCtx.save(); bgCtx.translate(p.x, p.y); bgCtx.rotate(p.rot); bgCtx.globalAlpha = p.alpha; bgCtx.fillStyle = p.color; bgCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size); bgCtx.restore(); }
-          bgRaf = requestAnimationFrame(bgLoop);
-        }
+          for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.vy += p.g * dt;
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.rot += p.vr * dt;
+            p.life -= dt;
 
-        // ===== Confete e fogos (finale) =====
-        function spawnParticle(x, y, size, angle, speed, life, color) { particles.push({ x, y, size, angle, speed, life, color, rotate: rand(0, Math.PI * 2), spin: rand(-0.1, 0.1), vy: 0 }); }
-        function spawnBurst(x, y, count = 24, sizeMul = 1) { for (let i = 0; i < count; i++) { const a = rand(0, Math.PI * 2); const s = rand(3, 7) * sizeMul; const sz = rand(3, 6) * sizeMul; const life = rand(40, 80); const color = Math.random() < 0.5 ? CONFIG.THEME_COLOR : CONFIG.SECONDARY_COLOR; spawnParticle(x, y, sz, a, s, life, color); } animateParticles(); }
-        function spawnBurstAtElement(el, count = 18) {
-          // Explode exatamente no centro visível do balão (ligeiramente acima do meio)
-          const r = el.getBoundingClientRect();
-          const x = r.left + r.width / 2;
-          const y = r.top + r.height * 0.4; // próximo ao "miolo" do balão
-          spawnBurst(x, y, count, 1);
-        }
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.7);
+            ctx.restore();
 
-        function animateParticles() {
-          if (rafId) return;
-          const g = 0.09;
-          function frame() {
-            ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-
-            // Atualiza/desenha foguetes
-            const newRockets = [];
-            for (const r of rockets) {
-              r.y += r.vy; r.life -= 1;
-              ctx.fillStyle = r.color;
-              ctx.fillRect(r.x - 1.5, r.y - 6, 3, 12);
-              if (r.life <= 0) {
-                spawnBurst(r.x, r.y, 60, 1.3);
-              } else {
-                newRockets.push(r);
-              }
+            if (p.life <= 0 || p.y > canvas.height + 40 * this.dpr) {
+              this.particles.splice(i, 1);
             }
-            rockets = newRockets;
-
-            // Atualiza/desenha confetes (partículas)
-            particles = particles.filter(p => p.life > 0);
-            for (const p of particles) {
-              p.vy += g;
-              p.x += Math.cos(p.angle) * p.speed;
-              p.y += Math.sin(p.angle) * p.speed + p.vy;
-              p.rotate += p.spin;
-              p.life -= 1;
-              ctx.save();
-              ctx.translate(p.x, p.y);
-              ctx.rotate(p.rotate);
-              ctx.fillStyle = p.color;
-              ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
-              ctx.restore();
-            }
-
-            rafId = (particles.length > 0 || rockets.length > 0 || finaleActive) ? requestAnimationFrame(frame) : null;
           }
-          rafId = requestAnimationFrame(frame);
-        }
 
-        function fireworks(x, y) {
-          // Insere um foguete na simulação (desenhado dentro do loop de partículas)
-          rockets.push({ x, y: innerHeight + 30, vy: -8 - Math.random() * 2, life: 60, color: CONFIG.THEME_COLOR });
-        }
-
-        function finaleShow() {
-          const w = innerWidth, h = innerHeight;
-          finaleActive = true;
-          // Dispara alguns de início
-          for (let i = 0; i < 5; i++) { spawnBurst(lerp(w * 0.1, w * 0.9, Math.random()), lerp(h * 0.15, h * 0.6, Math.random()), 48, 1.2); }
-          fireworks(w * 0.25, h * 0.75);
-          fireworks(w * 0.5, h * 0.78);
-          fireworks(w * 0.75, h * 0.72);
-          animateParticles();
-          // Loop contínuo até reiniciar
-          if (finaleTimer) clearInterval(finaleTimer);
-          finaleTimer = setInterval(() => {
-            // Explosões aleatórias
-            for (let i = 0; i < 2; i++) {
-              spawnBurst(lerp(w * 0.1, w * 0.9, Math.random()), lerp(h * 0.15, h * 0.6, Math.random()), 36, 1.1);
-            }
-            // Novos fogos
-            fireworks(lerp(w * 0.2, w * 0.8, Math.random()), h * 0.8);
-          }, 1200);
-        }
-
-        async function shareResult() { const text = `Chá de Revelação: ${CONFIG.REVEAL_MESSAGE} — Bem-vindo(a) ${CONFIG.BABY_NAME || ''}`; try { if (navigator.share) { await navigator.share({ title: 'Chá de Revelação', text, url: location.href }); } else { await navigator.clipboard.writeText(`${text} — ${location.href}`); alert('Texto copiado! Cole onde quiser ✨'); } } catch (e) { } }
-
-        // Eventos UI
-        againBtn.addEventListener('click', resetGame);
-        resetBtn.addEventListener('click', resetGame);
-        shareBtn.addEventListener('click', shareResult);
-
-        // Inicialização
-        function resizeAll() { resizeCanvases(); const rect = cluster.getBoundingClientRect(); stringsSvg.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`); stringsSvg.setAttribute('width', rect.width); stringsSvg.setAttribute('height', rect.height); }
-        function firstStart() {
-          // Ajustes leves de performance em telas pequenas
-          if (innerWidth <= 480) {
-            CONFIG.BG_CONFETTI_DENSITY = Math.min(CONFIG.BG_CONFETTI_DENSITY, 7);
+          if (this.particles.length) {
+            requestAnimationFrame(() => this.loop());
+          } else {
+            this.running = false;
           }
-          resizeAll(); setThemeColor(CONFIG.THEME_COLOR); requestAnimationFrame(resetGame); bgLoop();
-        }
-        window.addEventListener('resize', () => { resizeAll(); });
-        firstStart();
-
-        // ====== Tests (opcionais) ======
-        if (CONFIG.RUN_TESTS) {
-          // Teste 1: elementos essenciais
-          console.assert(!!stage && !!cluster, 'TEST: stage/cluster devem existir');
-          // Teste 2: contagem de balões após bootstrap
-          setTimeout(() => {
-            const balloons = cluster.querySelectorAll('.balloon');
-            console.assert(balloons.length === CONFIG.BALLOON_COUNT, `TEST: devem existir ${CONFIG.BALLOON_COUNT} balões, há ${balloons.length}`);
-            // Teste 3: lógica das letras — nunca revela última letra
-            const N = targetWord.length;
-            const preview = (k) => { renderProgress(Math.min(k, N - 1)); return progress.textContent.replace(/\s+/g, ''); };
-            console.assert(!preview(0).endsWith(targetWord[N - 1]), 'TEST: última letra não deve estar revelada no início');
-            console.assert(!preview(N).endsWith(targetWord[N - 1]), 'TEST: última letra nunca deve ser revelada');
-            // Teste 4: ordem aleatória tem N-1 posições e não inclui a última
-            initRevealOrder();
-            console.assert(revealOrder.length === Math.max(0, N - 1), 'TEST: revealOrder deve conter N-1 índices');
-            console.assert(!revealOrder.includes(N - 1), 'TEST: revealOrder não deve conter o índice da última letra');
-          }, 220);
-
-          // Teste 5: estilo do balão aplica gradiente
-          setTimeout(() => {
-            const b = cluster.querySelector('.balloon');
-            console.assert(b && getComputedStyle(b).backgroundImage.includes('linear-gradient'), 'TEST: balão deve ter gradiente aplicado');
-          }, 260);
-
-          // Teste 6: final revela nome do bebê
-          setTimeout(() => {
-            cluster.querySelectorAll('.balloon').forEach(el => el.click());
-            setTimeout(() => {
-              const shown = reveal.classList.contains('show');
-              console.assert(shown, 'TEST: overlay de revelação deve aparecer ao estourar todos');
-              console.assert((babyNameSpan?.textContent || '') === (CONFIG.BABY_NAME || ''), 'TEST: nome do bebê deve ser exibido corretamente');
-            }, 300);
-          }, 300);
         }
       }
-    })();
+
+      // cannon da CDN (se disponível) + engine nativa (fallback)
+      function makeCannon() {
+        if (!window.confetti) return null;
+        try { return window.confetti.create(fxCanvas, { resize: true }); }
+        catch { return null; }
+      }
+      let cannon = makeCannon();
+      const nativeEngine = new NativeConfettiEngine(fxCanvas);
+
+      // Recria cannon quando a CDN carregar
+      const confettiScript = document.querySelector('script[src*="canvas-confetti"]');
+      if (confettiScript) {
+        confettiScript.addEventListener('load', () => { if (!cannon) cannon = makeCannon(); });
+      }
+
+      // Disparo seguro: usa CDN se houver; senão, fallback nativo
+      function fire(opts) {
+        if (cannon) { cannon(opts); return; }
+        // adaptar opções para nosso engine
+        nativeEngine.spawnBurst({
+          particleCount: opts?.particleCount ?? 40,
+          startVelocity: opts?.startVelocity ?? 35,
+          spread: opts?.spread ?? 360,
+          angle: opts?.angle ?? 90,
+          origin: opts?.origin ?? { x: Math.random(), y: Math.random() * 0.4 },
+          colors: opts?.colors ?? ["#ffffff", "#ffd166", "#9b5de5", "#00bbf9"],
+          scalar: opts?.scalar ?? 1
+        });
+      }
+
+      // resize canvas + engine
+      function sizeCanvas() {
+        nativeEngine.resize();
+      }
+      sizeCanvas();
+      window.addEventListener('resize', () => { requestAnimationFrame(sizeCanvas); }, { passive: true });
+
+      // ===========================
+      // IMAGENS / PRELOAD
+      // ===========================
+      const upTo = Math.min(Math.max(GAME_CONFIG.pairs, 3), 6);
+      const imageList = Array.from({ length: upTo }, (_, i) => `${GAME_CONFIG.imagesPath}casal-${i + 1}.png`);
+
+      function preload(src) {
+        return new Promise((res, rej) => {
+          const img = new Image();
+          img.onload = () => res(img);
+          img.onerror = rej;
+          img.src = src;
+        });
+      }
+
+      async function preloadAll() {
+        try {
+          const all = [...imageList].map(preload);
+          await Promise.all(all);
+        } catch (e) {
+          console.warn("Falha ao pré-carregar alguma imagem:", e);
+        }
+      }
+
+      // ===========================
+      // UTILITÁRIOS
+      // ===========================
+      function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+      }
+      function formatTime(ms) {
+        const s = Math.floor(ms / 1000);
+        const mm = String(Math.floor(s / 60)).padStart(2, '0');
+        const ss = String(s % 60).padStart(2, '0');
+        return `${mm}:${ss}`;
+      }
+      function vibrate(pattern) { if (navigator.vibrate) navigator.vibrate(pattern); }
+      function speak(msg) { ariaLive.textContent = msg; }
+
+      // ===========================
+      // TIMER / HUD
+      // ===========================
+      function startTimer() {
+        if (state.timerId) clearInterval(state.timerId);
+        state.startedAt = performance.now();
+        state.timerId = setInterval(() => {
+          const elapsed = performance.now() - state.startedAt;
+          const t = formatTime(elapsed);
+          timeA.textContent = t;
+        }, 250);
+      }
+      function stopTimer() { if (state.timerId) { clearInterval(state.timerId); state.timerId = null; } }
+      function setMoves(n) { state.moves = n; movesA.textContent = n; }
+
+      // ===========================
+      // DECK / UI
+      // ===========================
+      function createDeck() {
+        const base = imageList.slice(0, upTo).map((src, idx) => ({ id: idx, src }));
+        const doubled = [...base, ...base].map((c, k) => ({ ...c, uid: `${c.id}-${k}` }));
+        return shuffle(doubled);
+      }
+
+      function renderGrid() {
+        grid.innerHTML = '';
+        state.deck.forEach(card => {
+          const cell = document.createElement('div');
+          cell.className = 'card';
+          cell.role = 'gridcell';
+
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.setAttribute('aria-label', 'Virar carta');
+          btn.dataset.id = card.id;
+          btn.dataset.uid = card.uid;
+
+          const inner = document.createElement('div'); inner.className = 'inner';
+
+          const front = document.createElement('div'); front.className = 'face front';
+          const img = document.createElement('img');
+          img.alt = 'Foto do casal'; img.loading = 'lazy'; img.src = card.src;
+          const skeleton = document.createElement('div'); skeleton.className = 'skeleton';
+          img.addEventListener('load', () => { img.classList.add('loaded'); skeleton.remove(); }, { once: true });
+          front.appendChild(skeleton); front.appendChild(img);
+
+          const back = document.createElement('div'); back.className = 'face back';
+          const q = document.createElement('div'); q.className = 'qmark'; q.textContent = '?';
+          back.appendChild(q);
+
+          inner.appendChild(front); inner.appendChild(back);
+          btn.appendChild(inner); cell.appendChild(btn); grid.appendChild(cell);
+
+          btn.addEventListener('click', () => onFlip(btn, cell), { passive: true });
+        });
+      }
+
+      function resetState() {
+        stopTimer();
+        state.firstCard = null;
+        state.secondCard = null;
+        state.lockBoard = false;
+        state.matchedPairs = 0;
+        setMoves(0);
+        timeA.textContent = '00:00';
+      }
+
+      async function setup() {
+        await preloadAll();
+        resetState();
+        state.deck = createDeck();
+        renderGrid();
+        startTimer();
+      }
+
+      // ===========================
+      // LÓGICA DE JOGO
+      // ===========================
+      function onFlip(btn, cell) {
+        if (state.lockBoard) return;
+        const alreadyFlipped = cell.classList.contains('flipped');
+        if (alreadyFlipped) return;
+
+        cell.classList.add('flipped');
+        if (!state.firstCard) {
+          state.firstCard = { btn, cell, id: btn.dataset.id };
+          vibrate(10);
+          return;
+        }
+        state.secondCard = { btn, cell, id: btn.dataset.id };
+        state.lockBoard = true;
+        setMoves(state.moves + 1);
+        window.requestAnimationFrame(() => checkMatch());
+      }
+
+      function checkMatch() {
+        const isMatch = state.firstCard.id === state.secondCard.id;
+        if (isMatch) { handleMatch(); } else { handleMismatch(); }
+      }
+
+      function handleMatch() {
+        speak('Par encontrado!');
+        vibrate([10, 40, 10]);
+        state.firstCard.btn.disabled = true;
+        state.secondCard.btn.disabled = true;
+        state.firstCard.cell.style.outline = '2px solid rgba(74,222,128,.65)';
+        state.secondCard.cell.style.outline = '2px solid rgba(74,222,128,.65)';
+
+        state.matchedPairs++;
+        state.firstCard = null; state.secondCard = null; state.lockBoard = false;
+
+        if (state.matchedPairs === upTo) {
+          stopTimer();
+          triggerRevealSequence();
+        }
+      }
+
+      function handleMismatch() {
+        speak('Tente novamente');
+        vibrate([40, 80]);
+        const a = state.firstCard.cell, b = state.secondCard.cell;
+        a.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-4px)' }, { transform: 'translateX(0)' }], { duration: 180 });
+        b.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(4px)' }, { transform: 'translateX(0)' }], { duration: 180 });
+        setTimeout(() => {
+          a.classList.remove('flipped');
+          b.classList.remove('flipped');
+          state.firstCard = null; state.secondCard = null; state.lockBoard = false;
+        }, 420);
+      }
+
+      // ===========================
+      // SUSPENSE + REVELAÇÃO
+      // ===========================
+      function triggerRevealSequence() {
+        showSuspense(5).then(() => { triggerReveal(); });
+      }
+
+      function showSuspense(seconds = 5) {
+        return new Promise((resolve) => {
+          let remaining = seconds;
+          countdownEl.textContent = remaining;
+          suspenseLayer.classList.add('show');
+
+          const conf = setInterval(() => {
+            fire({ particleCount: 26, spread: 60, angle: 60, origin: { x: 0, y: 0.4 }, scalar: 1 });
+            fire({ particleCount: 26, spread: 60, angle: 120, origin: { x: 1, y: 0.4 }, scalar: 1 });
+          }, 220);
+
+          const timer = setInterval(() => {
+            remaining--;
+            countdownEl.textContent = remaining;
+            if (remaining <= 0) {
+              clearInterval(timer);
+              clearInterval(conf);
+              suspenseLayer.classList.remove('show');
+              resolve();
+            }
+          }, 1000);
+        });
+      }
+
+      function triggerReveal() {
+        const gender = GAME_CONFIG.revealGender === 'boy' ? 'boy' : 'girl';
+        const themeColor = gender === 'girl' ? GAME_CONFIG.girlColor : GAME_CONFIG.boyColor;
+        const name = gender === 'girl' ? 'Seja bem vinda, Tália!!🎀' : 'Seja bem vindo, ROMEU!!💙';
+        const title = gender === 'girl' ? 'É MENINA!' : 'É MENINO!';
+
+        // Muda fundo + reduz foco do board
+        document.body.style.background = themeColor;
+        document.body.classList.add('reveal-mode');
+
+        // Preenche overlay (sem imagem)
+        revealTitle.textContent = title;
+        babyName.textContent = name;
+        revealText.textContent = REVEAL_MESSAGE;
+
+        overlay.classList.add('show');
+
+        // Confetes abundantes por ~5s
+        celebrationConfetti(5200, themeColor);
+      }
+
+      // ===========================
+      // ANIMAÇÕES DE CONFETE
+      // ===========================
+      function celebrationConfetti(durationMs = 10000, themeColor = "#ffffff") {
+        const colors = [themeColor, "#ffffff", "#9b5de5", "#00bbf9"];
+        const end = Date.now() + durationMs;
+
+        (function frame() {
+          fire({
+            particleCount: 10,
+            startVelocity: 35,
+            spread: 360,
+            origin: { x: Math.random(), y: Math.random() * 0.4 },
+            colors, scalar: 1
+          });
+          if (Date.now() < end) { requestAnimationFrame(frame); }
+        })();
+
+        const burst = setInterval(() => {
+          fire({ particleCount: 34, angle: 60, spread: 70, origin: { x: 0, y: 0.4 }, colors });
+          fire({ particleCount: 34, angle: 120, spread: 70, origin: { x: 1, y: 0.4 }, colors });
+          if (Date.now() > end) clearInterval(burst);
+        }, 240);
+      }
+
+      // ===========================
+      // REINICIAR
+      // ===========================
+      function clearOverlay() { overlay.classList.remove('show'); }
+      function restart() {
+        clearOverlay();
+        document.body.classList.remove('reveal-mode');
+        document.body.style.background = '';
+        setup();
+      }
+
+      restartTop.addEventListener('click', restart);
+      playAgain.addEventListener('click', restart);
+
+      // ===========================
+      // INICIALIZA
+      // ===========================
+      setup();
+    });
   </script>
 </body>
 
